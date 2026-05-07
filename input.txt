@@ -1,0 +1,17 @@
+sequence_file:    binary_pi_oeis
+max_width:        5000
+pixel_size:       1
+modulo:           3
+
+change the above values
+Note:
+- Do not add ".txt" to files
+- modulo must be prime
+
+
+available files:
+
+thue_morse_oeis
+paperfolding_oeis
+binary_pi_oeis
+binary_golden_ratio_oeis
