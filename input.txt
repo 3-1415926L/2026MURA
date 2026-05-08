@@ -1,7 +1,7 @@
-sequence_file:    thue_morse_oeis
-max_width:        5000
+sequence_file:    4_automatic_oeis
+max_width:        10000
 pixel_size:       1
-modulo:           19
+modulo:           5
 
 change the above values
 Note:
@@ -16,3 +16,6 @@ paperfolding_oeis
 binary_pi_oeis
 binary_golden_ratio_oeis
 binary_e_oeis
+4_automatic_oeis
+kolakoski_oeis
+catalan_mod_3_oeis
