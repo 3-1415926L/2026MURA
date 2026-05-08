@@ -19,7 +19,7 @@ struct NumberWall {
     vector<int> inverse;
 
     // ctor
-    NumberWall(vector<int> S, int w, int modulo, bool print): width{w}, height{(w + 1) / 2}, modulo{modulo} {
+    NumberWall(vector<int> S, int w, int modulo, bool print = false): width{w}, height{(w + 1) / 2}, modulo{modulo} {
         int total = 0;
         for (int n = w; n >= 1; n -= 2) {
             offset.push_back(total);
@@ -27,16 +27,20 @@ struct NumberWall {
         }
         wall.resize(total);
         for (int i = 0; i < modulo; ++i) {
-            inverse.push_back(pow(i, modulo - 2));
+            inverse.push_back(modPow(i, modulo - 2, modulo));
         }
-        makeWall(S, print);
+        if (print) {
+            makeWallPrint(S);
+        } else {
+            makeWall(S);
+        }
     }
 
     // both of these require row <= col < width - row
     int get(int row, int col) {
-        if (row >= 0 && (col < row || col >= width - row)) {
-            cout << "error! " << row << ", " << col << " out of bounds!\n" << flush;
-        }
+        //if (row >= 0 && (col < row || col >= width - row)) {
+        //    cout << "error! " << row << ", " << col << " out of bounds!\n" << flush;
+        //}
         if (row == -1) return 1;
         if (row < -1) return 0;
         return wall[offset[row] + col - row];
@@ -46,41 +50,49 @@ struct NumberWall {
         wall[offset[row] + col - row] = value;
     }
 
-    void makeWall(vector<int> S, bool print) {
+    void makeWall(vector<int> S) {
         // zero/one rows implicitly there
-        // if (print) print rows -2 and -1
-        if (print) {
-            cout << " ";
-            for (int i = 0; i < width; ++i) {
-                cout << 0 << "  ";
-            }
-            cout << "\n ";
-            for (int i = 0; i < width; ++i) {
-                cout << 1 << "  ";
-            }
-            cout << "\n";
-        }
         // create sequence row
         for(int i = 0; i < width; ++i) {
-            if (print) cout << " " << S[i] << " ";
             wall[i] = (modulo + (S[i] % modulo)) % modulo;
         }
-        if (print) cout << "\n";
         // create other rows
         for (int row = 1; row < height; ++row) {
-            if (print) {
-                for (int i = 0; i < row; ++i) {
-                    cout << "   ";
-                }
+            for (int col = row; col < width - row ; ++col) {
+                set(row, col, makeElement(row, col));
+            }
+        }
+    }
+
+    void makeWallPrint(vector<int> S) {
+        // zero/one rows implicitly there
+        // print rows -2 and -1
+        cout << " ";
+        for (int i = 0; i < width; ++i) {
+            cout << 0 << "  ";
+        }
+        cout << "\n ";
+        for (int i = 0; i < width; ++i) {
+            cout << 1 << "  ";
+        }
+        cout << "\n";
+        // create sequence row
+        for(int i = 0; i < width; ++i) {
+            cout << " " << S[i] << " ";
+            wall[i] = (modulo + (S[i] % modulo)) % modulo;
+        }
+        cout << "\n";
+        // create other rows
+        for (int row = 1; row < height; ++row) {
+            for (int i = 0; i < row; ++i) {
+                cout << "   ";
             }
             for (int col = row; col < width - row ; ++col) {
                 int curr = makeElement(row, col);
-                if (print) {
-                    cout << " " << curr << " " << flush;
-                }
+                cout << " " << curr << " " << flush;
                 set(row, col, curr);
             }
-            if (print) cout << "\n";
+            cout << "\n";
         }
     }
 
@@ -126,7 +138,7 @@ struct NumberWall {
 
         // D_k
         if (get(row - 1, col) == 0) {
-            int Dk = pow(-1, l * k) * Bk * Ck * inverse[Ak];
+            int Dk = (1 - 2 * (k % 2 && l % 2)) * Bk * Ck * inverse[Ak];
             return (modulo + (Dk % modulo)) % modulo;
         }
 
@@ -144,8 +156,8 @@ struct NumberWall {
 
         int Hk = Dk * inverse[rC % modulo]
             * (Ek * rB * inverse[Ak]
-            + pow(-1, k) * Fk * rA * inverse[Bk]
-            - pow(-1, k) * Gk * rD * inverse[Ck]);
+            + (1 - 2 * (k % 2)) * Fk * rA * inverse[Bk]
+            - (1 - 2 * (k % 2)) * Gk * rD * inverse[Ck]);
         return (modulo + (Hk % modulo)) % modulo;
     }
 
@@ -226,6 +238,17 @@ struct NumberWall {
             img.data(),
             imgW * 3
         );
+    }
+
+    // efficiently finds x^p mod m
+    // requires p >= 0, x >= 0
+    int modPow(int x, int p, int m) {
+        int res = 1;
+        while (p > 0) {
+            p--;
+            res = (res * x) % m;
+        }
+        return res;
     }
 };
 

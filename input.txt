@@ -1,7 +1,7 @@
-sequence_file:    binary_pi_oeis
+sequence_file:    thue_morse_oeis
 max_width:        5000
 pixel_size:       1
-modulo:           3
+modulo:           19
 
 change the above values
 Note:
@@ -15,3 +15,4 @@ thue_morse_oeis
 paperfolding_oeis
 binary_pi_oeis
 binary_golden_ratio_oeis
+binary_e_oeis
