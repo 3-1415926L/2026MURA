@@ -1,7 +1,7 @@
-sequence_file:    4_automatic_oeis
+sequence_file:    0_paperfolding_oeis
 max_width:        10000
 pixel_size:       1
-modulo:           5
+modulo:           2
 
 change the above values
 Note:
@@ -12,10 +12,12 @@ Note:
 available files:
 
 thue_morse_oeis
-paperfolding_oeis
+1_paperfolding_oeis
+0_paperfolding_oeis
 binary_pi_oeis
 binary_golden_ratio_oeis
 binary_e_oeis
 4_automatic_oeis
 kolakoski_oeis
 catalan_mod_3_oeis
+fibonacci_word_oeis
