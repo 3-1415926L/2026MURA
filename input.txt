@@ -1,4 +1,4 @@
-sequence_file:    0_paperfolding_oeis
+sequence_file:    look_and_say_alt
 max_width:        10000
 pixel_size:       1
 modulo:           2
@@ -11,13 +11,15 @@ Note:
 
 available files:
 
-thue_morse_oeis
-1_paperfolding_oeis
-0_paperfolding_oeis
-binary_pi_oeis
-binary_golden_ratio_oeis
-binary_e_oeis
-4_automatic_oeis
-kolakoski_oeis
-catalan_mod_3_oeis
-fibonacci_word_oeis
+thue_morse
+1_paperfolding
+0_paperfolding
+binary_pi
+binary_golden_ratio
+binary_e
+4_automatic
+kolakoski
+catalan_mod_3
+fibonacci_word
+look_and_say
+look_and_say_alt

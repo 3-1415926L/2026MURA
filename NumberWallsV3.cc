@@ -298,19 +298,12 @@ int main() {
 
     ff = ifstream{full_sequence_file};
     int i = 0, c = 0, x = 0;
-    if (full_sequence_file.find("oeis") != std::string::npos) {
-        while ((ff >> x) && c < max_width) {
-            if (i) {
-                S.push_back(x);
-                ++c;
-            }
-            i = 1 - i;
-        }
-    } else {
-        while (c < max_width) {
+    while ((ff >> x) && c < max_width) {
+        if (i) {
             S.push_back(x);
             ++c;
         }
+        i = 1 - i;
     }
     
     int len = S.size();
