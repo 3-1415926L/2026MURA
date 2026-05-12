@@ -10,6 +10,28 @@
 
 using namespace std;
 
+
+
+// standalone functions
+
+// efficiently finds x^p mod m
+// requires p >= 0, x >= 0
+int modPow(int x, int p, int m) {
+    int res = 1;
+    while (p > 0) {
+        p--;
+        res = (res * x) % m;
+    }
+    return res;
+}
+
+void printArr(int S[], int len) {
+    for (int i = 0; i < len; i++) {
+        cout << S[i];
+    }
+    cout << '\n';
+}
+
 struct NumberWall {
     vector<int> wall; // does not include row -1 or -2
     vector<int> offset;
@@ -260,34 +282,14 @@ struct NumberWall {
             imgW * 3
         );
     }
-
-    // efficiently finds x^p mod m
-    // requires p >= 0, x >= 0
-    int modPow(int x, int p, int m) {
-        int res = 1;
-        while (p > 0) {
-            p--;
-            res = (res * x) % m;
-        }
-        return res;
-    }
 };
-
-// standalone functions
-
-void printArr(int S[], int len) {
-    for (int i = 0; i < len; i++) {
-        cout << S[i];
-    }
-    cout << '\n';
-}
 
 
 
 int main() {
     vector<int> S;
-    ifstream ff{"input.txt"};
-    // temp is a pointless string so that I can have a nicer input file
+    ifstream ff{"inputNumberWalls.txt"};
+    // temp is a pointless string so that I can have notes in my input file
     string sequence_file, temp;
     int max_width, pixel_size, modulo;
     ff >> temp >> sequence_file;
