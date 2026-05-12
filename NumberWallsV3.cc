@@ -316,7 +316,9 @@ int main() {
     // uncomment line below to see text display of wall
     //W.printWall();
 
-    string out_file = "images/" + sequence_file + "_(w=" + to_string(c) + ")_(m=" + to_string(modulo) + ").png";
+    string out_file = "imagesNumberWalls/" + sequence_file
+                      + "_(w=" + to_string(c) + ")_(m="
+                      + to_string(modulo) + ").png";
     W.savePNG(out_file , pixel_size, modulo);
     //cout << "\n\n\n" << *max_element(W.wall.begin(), W.wall.end());
 

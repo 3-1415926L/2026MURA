@@ -1,7 +1,7 @@
-sequence_file:    look_and_say_alt
+sequence_file:    primes_mod_3
 max_width:        10000
 pixel_size:       1
-modulo:           2
+modulo:           3
 
 change the above values
 Note:
@@ -23,3 +23,6 @@ catalan_mod_3
 fibonacci_word
 look_and_say
 look_and_say_alt
+inventory_sequence
+prime_gaps
+primes_mod_3
