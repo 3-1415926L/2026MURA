@@ -1,7 +1,7 @@
-sequence_file:    primes_mod_3
-max_width:        10000
+sequence_file:    temp
+max_width:        1000
 pixel_size:       1
-modulo:           3
+modulo:           5
 
 change the above values
 Note:

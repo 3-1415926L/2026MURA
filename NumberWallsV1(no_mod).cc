@@ -238,7 +238,7 @@ void printArr(int S[], int len) {
 }
 
 // global variables
-string input_file = "thue_morse_oeis.txt";
+string input_file = "sequences/temp.txt";
 int max_width = 300;
 int pixel_size = 5;
 int modulo = 5;
@@ -247,26 +247,19 @@ int main() {
     vector<int> S;
     ifstream ff{input_file};
     int i = 0, c = 0, x = 0;
-    if (input_file.find("oeis") != std::string::npos) {
-        while ((ff >> x) && c < max_width) {
-            if (i) {
-                S.push_back(x);
-                ++c;
-            }
-            i = 1 - i;
-        }
-    } else {
-        while (c < max_width) {
+    while ((ff >> x) && c < max_width) {
+        if (i) {
             S.push_back(x);
             ++c;
         }
+        i = 1 - i;
     }
     
     int len = S.size();
 
     NumberWall W{S, len, false};
-    //W.printWall();
-    W.savePNG("wall.png" , pixel_size, modulo);
+    W.printWall();
+    //W.savePNG("wall.png" , pixel_size, modulo);
 
     cout << "\n\n\n" << *max_element(W.wall.begin(), W.wall.end());
 
