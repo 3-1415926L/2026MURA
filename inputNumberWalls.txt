@@ -1,7 +1,7 @@
-sequence_file:    temp
-max_width:        1000
+sequence_file:    pagoda
+max_width:        10000
 pixel_size:       1
-modulo:           5
+modulo:           79
 
 change the above values
 Note:
@@ -26,3 +26,4 @@ look_and_say_alt
 inventory_sequence
 prime_gaps
 primes_mod_3
+pagoda
