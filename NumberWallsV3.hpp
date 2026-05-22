@@ -2,6 +2,8 @@
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include "tools.hpp"
+
 #include <iostream>
 #include <vector>
 #include <utility>
@@ -13,45 +15,6 @@
 using namespace std;
 
 
-
-// standalone functions
-
-// efficiently finds x^p mod m
-// requires p >= 0, x >= 0
-int modPow(int x, int p, int m) {
-    int res = 1;
-    while (p > 0) {
-        p--;
-        res = (res * x) % m;
-    }
-    return res;
-}
-
-void printArr(int S[], int len) {
-    if (len == 0) {
-        cout << "(empty)" << endl;
-        return;
-    } else {
-        cout << S[0];
-    }
-    for (int i = 1; i < len; i++) {
-        cout << "," << S[i];
-    }
-    cout << endl;
-}
-
-void printArr(vector<int> S) {
-    if (S.size() == 0) {
-        cout << "(empty)" << endl;
-        return;
-    } else {
-        cout << S[0];
-    }
-    for (int i = 1; i < S.size(); i++) {
-        cout << "," << S[i];
-    }
-    cout << endl;
-}
 
 struct NumberWall {
     vector<int> wall; // does not include row -1 or -2

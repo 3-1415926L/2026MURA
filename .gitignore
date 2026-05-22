@@ -1,0 +1,14 @@
+# Executables
+*.exe
+a.out
+
+# Object files
+*.o
+*.obj
+
+# Precompiled headers
+*.gch
+
+# Temporary files
+temp.txt
+sequences/temp.txt

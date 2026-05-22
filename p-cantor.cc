@@ -10,39 +10,6 @@ using namespace std;
 
 
 
-int choose(int n, int k) {
-    if (k > n) return 0;
-    if (k * 2 > n) k = n-k;
-    if (k == 0) return 1;
-
-    int result = n;
-    for(int i = 2; i <= k; ++i ) {
-        result *= (n-i+1);
-        result /= i;
-    }
-    return result;
-}
-
-int chooseModP(int n, int k, int p) {
-    if (k < 0 || k > n) {
-        return 0;
-    }
-    k = min(k, n - k);
-
-    int numerator = 1;
-    int denominator = 1;
-
-    for (int i = 1; i <= k; ++i) {
-        numerator = numerator * (n - k + i) % p;
-        denominator = denominator * i % p;
-    }
-
-    // Fermat inverse: denominator^(p-2) mod p
-    int denominator_inverse = modPow(denominator, p - 2, p);
-
-    return numerator * denominator_inverse % p;
-}
-
 void pCantor(vector<int>& S, int p) {
     int p2 = (p - 1) / 2;
     vector<int> binCoeff = {1};
@@ -120,7 +87,7 @@ int main() {
     //string out_file = "pCantorNumberWalls/" + to_string(modulo)
     //                  + "-Cantor_(w=" + to_string(len) + ").png";
     //string out_file = "pCantorNumberWalls/" + to_string(modulo)
-                      + "-(1+x^2+x^4)_(w=" + to_string(len) + ").png";
+    //                  + "-(1+x^2+x^4)_(w=" + to_string(len) + ").png";
 
     //W.savePNG(out_file, pixel_size, modulo);
 

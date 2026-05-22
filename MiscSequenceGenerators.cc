@@ -5,14 +5,14 @@
 
 using namespace std;
 
-void printSeq(string S, string seqName) {
+void saveSeq(string S, string seqName) {
     ofstream ff{"sequences/" + seqName + ".txt"};
     for (int i = 0; i < S.length(); ++i) {
         ff << i << " " << S[i] << endl;
     }
 }
 
-void printSeq(vector<int> S, string seqName) {
+void saveSeq(vector<int> S, string seqName) {
     ofstream ff{"sequences/" + seqName + ".txt"};
     for (int i = 0; i < S.size(); ++i) {
         ff << i << " " << S[i] << endl;
@@ -43,7 +43,7 @@ void lookAndSay(int numTerms) {
         term = lookAndSayNext(term);
         S = S + term;
     }
-    printSeq(S, "look_and_say");
+    saveSeq(S, "look_and_say");
 }
 
 void lookAndSayAlt(int numTerms) {
@@ -51,7 +51,7 @@ void lookAndSayAlt(int numTerms) {
     while (S.length() < numTerms) {
         S = S + lookAndSayNext(S);
     }
-    printSeq(S, "look_and_say_alt");
+    saveSeq(S, "look_and_say_alt");
 }
 
 vector<int> pagodaNext(vector<int> S) {
@@ -114,7 +114,7 @@ void pagoda(int numTerms) {
     }
     S = pagodaCode(S);
     S.erase(S.begin());
-    printSeq(S, "pagoda");
+    saveSeq(S, "pagoda");
 }
 
 int main() {
