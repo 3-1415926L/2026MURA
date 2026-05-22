@@ -1,12 +1,12 @@
 sequence_file:    pagoda
-max_width:        10000
+max_width:        5000
 pixel_size:       1
 modulo:           79
 
 change the above values
 Note:
 - Do not add ".txt" to files
-- modulo must be prime
+- modulo must be a prime less than 1000
 
 
 available files:

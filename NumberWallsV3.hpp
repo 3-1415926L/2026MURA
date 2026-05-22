@@ -28,10 +28,29 @@ int modPow(int x, int p, int m) {
 }
 
 void printArr(int S[], int len) {
-    for (int i = 0; i < len; i++) {
-        cout << S[i];
+    if (len == 0) {
+        cout << "(empty)" << endl;
+        return;
+    } else {
+        cout << S[0];
     }
-    cout << '\n';
+    for (int i = 1; i < len; i++) {
+        cout << "," << S[i];
+    }
+    cout << endl;
+}
+
+void printArr(vector<int> S) {
+    if (S.size() == 0) {
+        cout << "(empty)" << endl;
+        return;
+    } else {
+        cout << S[0];
+    }
+    for (int i = 1; i < S.size(); i++) {
+        cout << "," << S[i];
+    }
+    cout << endl;
 }
 
 struct NumberWall {
@@ -180,10 +199,10 @@ struct NumberWall {
                     Bk = get(top + k, left);
                     Ck = get(top + l + 1 - k, right);
 
-                    int Hk = Dk * rCinv
-                        * (Ek * rB * inverse[Ak]
-                        + (1 - 2 * (k % 2)) * Fk * rA * inverse[Bk]
-                        - (1 - 2 * (k % 2)) * Gk * rD * inverse[Ck]);
+                    int Hk = Dk * rCinv % modulo
+                        * (Ek * rB * inverse[Ak] % modulo
+                        + (1 - 2 * (k % 2)) * (Fk * rA * inverse[Bk] % modulo)
+                        - (1 - 2 * (k % 2)) * (Gk * rD * inverse[Ck] % modulo));
                     set(row, col, (modulo + (Hk % modulo)) % modulo);
 
                     ++col;
@@ -276,5 +295,18 @@ struct NumberWall {
             img.data(),
             imgW * 3
         );
+    }
+
+    bool validWall() {
+        for (int row = 1; row < height - 1; ++row) {
+            for (int col = row + 1; col < width - row - 1; ++col) {
+                if ((get(row - 1, col) * get(row + 1, col)
+                    + get(row, col - 1) * get(row, col + 1)
+                    - get(row, col) * get(row, col)) % modulo) {
+                        return false;
+                }
+            }
+        }
+        return true;
     }
 };

@@ -226,6 +226,19 @@ struct NumberWall {
             imgW * 3
         );
     }
+
+    bool validWall(int modulo) {
+        for (int row = 1; row < height - 1; ++row) {
+            for (int col = row + 1; col < width - row - 1; ++col) {
+                if ((get(row - 1, col) * get(row + 1, col)
+                    + get(row, col - 1) * get(row, col + 1)
+                    - get(row, col) * get(row, col)) % modulo) {
+                        return false;
+                }
+            }
+        }
+        return true;
+    }
 };
 
 // standalone functions
@@ -238,10 +251,10 @@ void printArr(int S[], int len) {
 }
 
 // global variables
-string input_file = "sequences/temp.txt";
-int max_width = 300;
-int pixel_size = 5;
-int modulo = 5;
+string input_file = "sequences/pagoda.txt";
+int max_width = 51;
+int pixel_size = 1;
+int modulo = 79;
 
 int main() {
     vector<int> S;
@@ -258,10 +271,11 @@ int main() {
     int len = S.size();
 
     NumberWall W{S, len, false};
-    W.printWall();
-    //W.savePNG("wall.png" , pixel_size, modulo);
+    //W.printWall();
+    W.savePNG("wall.png" , pixel_size, modulo);
 
-    cout << "\n\n\n" << *max_element(W.wall.begin(), W.wall.end());
+    cout << "\nmax=" << *max_element(W.wall.begin(), W.wall.end()) << endl;
+    cout << "\nvalid=" <<W.validWall(modulo);
 
     return 0;
 }

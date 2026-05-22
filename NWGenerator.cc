@@ -42,6 +42,7 @@ int main() {
                       + to_string(modulo) + ").png";
     W.savePNG(out_file , pixel_size, modulo);
     //cout << "\n\n\n" << *max_element(W.wall.begin(), W.wall.end());
+    cout << "valid=" << W.validWall() << endl;
 
     return 0;
 }

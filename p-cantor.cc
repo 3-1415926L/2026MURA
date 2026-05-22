@@ -8,6 +8,21 @@
 
 using namespace std;
 
+
+
+int choose(int n, int k) {
+    if (k > n) return 0;
+    if (k * 2 > n) k = n-k;
+    if (k == 0) return 1;
+
+    int result = n;
+    for(int i = 2; i <= k; ++i ) {
+        result *= (n-i+1);
+        result /= i;
+    }
+    return result;
+}
+
 int chooseModP(int n, int k, int p) {
     if (k < 0 || k > n) {
         return 0;
@@ -49,6 +64,25 @@ void pCantor(vector<int>& S, int p) {
     S = move(result);
 }
 
+
+
+// uses (1+x^2+...+x^(2k))^n instead of (1+x^2)^p2
+// note: regular p-Cantor sequence = p-1-Hare sequence
+vector<int> pkHareCoeffs(int n, int k) {
+    vector<int> coeffs(2 * k * n + 1);
+    int c, sum;
+    for (int i = 0; i <= k * n; ++i) { // includes first and last indices
+        c = -1;
+        sum = 0;
+        for (int j = 0; j <= i / (k + 1); ++j) {
+            c = 0 - c; // first term has c = 1
+            sum += c * choose(n, j)
+                   * choose(i - j * (k + 1) + n - 1, n - 1);
+        }
+        coeffs[2 * i] = sum; // odd indices already 0
+    }
+}
+
 vector<int> zeroPad(vector<int> S) {
     vector<int> result(S.size() * 3);
     copy(S.begin(), S.end(), result.begin() + S.size());
@@ -63,13 +97,16 @@ int main() {
     int pixel_size = 1;
     int modulo = 7;
 
-    while (S.size() < max_width) {
+    vector<int> S = pkHareCoeffs(3, 2);
+    printArr(S);
+
+    /*while (S.size() < max_width) {
         pCantor(S, modulo);
     }
     S = zeroPad(S);
     
     int len = S.size();
-    NumberWall W{S, len, modulo};
+    NumberWall W{S, len, modulo};*/
 
     //for (int i = 0; i < len; ++i) {
     //    cout << S[i];
@@ -80,9 +117,12 @@ int main() {
 
     //cout << "\n\n\n" << *max_element(W.wall.begin(), W.wall.end());
 
-    string out_file = "pCantorNumberWalls/" + to_string(modulo)
-                      + "-Cantor_(w=" + to_string(len) + ").png";
-    W.savePNG(out_file, pixel_size, modulo);
+    //string out_file = "pCantorNumberWalls/" + to_string(modulo)
+    //                  + "-Cantor_(w=" + to_string(len) + ").png";
+    //string out_file = "pCantorNumberWalls/" + to_string(modulo)
+                      + "-(1+x^2+x^4)_(w=" + to_string(len) + ").png";
+
+    //W.savePNG(out_file, pixel_size, modulo);
 
     return 0;
 }

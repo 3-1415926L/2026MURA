@@ -27,7 +27,7 @@ bool isPrime(int n) {
 int main() {
     vector<int> S;
     ifstream ff{"sequences/pagoda.txt"};
-    int max_width = 5000;
+    int max_width = 10000;
     int i = 0, x = 0, c = 0;
     while (ff >> x && c < max_width) {
         if (i) {
@@ -40,14 +40,16 @@ int main() {
     int p = -1;
     while (true) {
         p += 4;
-        cout << "p=" << p << endl;
+        cout << "p=" << p;
         if (!isPrime(p)) {
-            cout << " (skipped)\n";
+            cout << endl;
             continue;
         }
+        cout << " (prime)" << endl;
         NumberWall W(S, max_width, p);
         vector<int> wall = W.wall;
         int len = wall.size();
+        /*
         for (int i = 1; i < len; i += 2) {
             if (!(wall[i])) {
                 if (!wall[i - 1] && !(find(W.offset.begin(), W.offset.end(), i) != W.offset.end())) {
@@ -57,6 +59,15 @@ int main() {
                 ++i;
                 if (!wall[i] && !(find(W.offset.begin(), W.offset.end(), i) != W.offset.end())) {
                     cout << "p=" << p << ", i=" << i << endl;
+                    break;
+                }
+            }
+        }
+        */
+        for (int row = 0; row < W.height; ++row) {
+            for (int col = row; col < W.width - row - 1; ++col) {
+                if (!W.get(row, col) && !W.get(row, col + 1)) {
+                    cout << "row=" << row << "col=" << col;
                     break;
                 }
             }
