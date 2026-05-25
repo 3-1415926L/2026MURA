@@ -11,6 +11,21 @@ using namespace std;
 
 
 
+bool isPrime(int n) {
+    if (n <= 1) return false;
+    if (n == 2) return true;
+    if (n % 2 == 0) return false;
+
+    // Check for factors from 3 up to sqrt(n)
+    int r = sqrt(n);
+    for (int i = 3; i <= r; i += 2) {
+        if (n % i == 0) {
+            return false;
+        }
+    }
+    return true; // No factors found -> prime
+}
+
 // efficiently finds x^p mod m
 // requires p >= 0, x >= 0
 int modPow(int x, int p, int m) {
@@ -20,6 +35,21 @@ int modPow(int x, int p, int m) {
         res = (res * x) % m;
     }
     return res;
+}
+
+// same, but for 'long long' numbers
+long long modpow(long long a, long long e, long long m) {
+    long long r = 1;
+    while (e > 0) {
+        if (e & 1) r = (r * a) % m;
+        a = (a * a) % m;
+        e >>= 1;
+    }
+    return r;
+}
+
+long long modinv(long long a, long long p) {
+    return modpow((a % p + p) % p, p - 2, p);
 }
 
 void printArr(int S[], int len) {

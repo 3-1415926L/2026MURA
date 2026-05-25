@@ -1,18 +1,142 @@
-Number_of_iterations:         9
-Block_size_(height_&_width):  2 2
-Start_symbol:                 1
-Number_of_symbols:            3
+=====General:=====
 
-Rules:
+Number_of_iterations:         5
+Start_symbol:                 A
+Number_of_symbols:            12
+
+
+=====Rules:=====
+
+Block_size:  5 5
+
+A
+A 0 A 0 A
+F B F B F
+A 0 A 0 A
+F B F B F
+A 0 A 0 A
+
+B
+B F B F B
+0 A 0 A 0
+B F B F B
+0 A 0 A 0
+B F B F B
+
+F
+CNW EN EN EN CNE
+EW 0 0 0 EE
+EW 0 0 0 EE
+EW 0 0 0 EE
+CSW ES ES ES CSE
 
 0
-0 0
-0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
 
+EN
+EN EN EN EN EN
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+
+EE
+0 0 0 0 EE
+0 0 0 0 EE
+0 0 0 0 EE
+0 0 0 0 EE
+0 0 0 0 EE
+
+ES
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+ES ES ES ES ES
+
+EW
+EW 0 0 0 0
+EW 0 0 0 0
+EW 0 0 0 0
+EW 0 0 0 0
+EW 0 0 0 0
+
+CNW
+CNW EN EN EN EN
+EW 0 0 0 0
+EW 0 0 0 0
+EW 0 0 0 0
+EW 0 0 0 0
+
+CNE
+EN EN EN EN CNE
+0 0 0 0 EE
+0 0 0 0 EE
+0 0 0 0 EE
+0 0 0 0 EE
+
+CSW
+EW 0 0 0 0
+EW 0 0 0 0
+EW 0 0 0 0
+EW 0 0 0 0
+CSW ES ES ES ES
+
+CSE
+0 0 0 0 EE
+0 0 0 0 EE
+0 0 0 0 EE
+0 0 0 0 EE
+ES ES ES ES CSE
+
+
+=====Coding:=====
+
+Block_size:   1 1
+
+A
 1
-1 2
-2 1
 
-2
-0 1
-1 2
+B
+1
+
+F
+1
+
+0
+0
+
+EN
+1
+
+EE
+1
+
+ES
+1
+
+EW
+1
+
+CNW
+1
+
+CNE
+1
+
+CSW
+1
+
+CSE
+1
+
+=====Notes:=====
+
+- Rules may use any symbols
+- Coding must map each symbol to an integer
+- Block sizes must be two integers representing
+      height and width (in that order)

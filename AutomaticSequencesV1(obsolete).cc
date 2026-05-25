@@ -1,13 +1,15 @@
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 #include <vector>
 #include <string>
 #include <unordered_map>
 #include <iostream>
 #include <fstream>
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
-
 using namespace std;
+
+
 
 struct Automatic2D {
     vector<vector<int>> grid;
@@ -55,11 +57,10 @@ struct Automatic2D {
         width = grid[0].size();
     }
 
-    void savePNG(string filename, int pixelSize, int mod) {
+    void savePNG(string filename, int pixelSize, int maxNum) {
 
         int imgW = width * pixelSize;
         int imgH = height * pixelSize;
-
         vector<unsigned char> img(imgW * imgH * 3);
 
         for (int row = 0; row < height; ++row) {
@@ -70,15 +71,16 @@ struct Automatic2D {
                     r = g = b = 255;
                 }
                 else {
-                    int v = get(row, col);
-                    int x = ((v % mod) + mod) % mod;
+                    int x = get(row, col);
                     if (x == 0) {
-                        r = g = b = 0;
+                        r = 255;
+                        g = 102;
+                        b = 0;
                     }
                     else {
                         r = 0;
                         g = 0;
-                        b = 50 + (205 * x) / (mod - 1);
+                        b = 50 + (205 * x) / (maxNum);
                     }
                 }
 
@@ -107,6 +109,8 @@ struct Automatic2D {
     }
 };
 
+
+
 int main() {
 
     ifstream ff("inputAutomaticSequences.txt");
@@ -114,16 +118,17 @@ int main() {
     // temp is a pointless string so that I can have notes in my input file
     string temp;
 
-    ff >> temp >> iterations;
-    ff >> temp >> blockH >> blockW;
+    // read General information
+    ff >> temp >> temp >> iterations;
     ff >> temp >> startSymbol;
     ff >> temp >> numSymbols;
-    ff >> temp;
-    string out_file = "imagesAutomaticSequences/i="
-                      + to_string(iterations)
-                      + ",s=" + to_string(startSymbol);
+    string out_file = "imagesAutomaticSequences/i=" + to_string(iterations)
+                      + ",s=" + to_string(startSymbol) + "r=(";
 
+    // read Rules information
+    ff >> temp >> temp >> blockH >> blockW;
     unordered_map<int, vector<vector<int>>> rules;
+
     for (int s = 0; s < numSymbols; ++s) {
         int symbol;
         ff >> symbol;
@@ -145,14 +150,44 @@ int main() {
         rules[symbol] = block;
         out_file += "}";
     }
-    out_file += ".png";
+    out_file += "),c=(";
+
+    // read Coding information
+    ff >> temp >> temp >> blockH >> blockW;
+    unordered_map<int, vector<vector<int>>> coding;
+    int maxNum = 0;
+
+    for (int s = 0; s < numSymbols; ++s) {
+        int symbol;
+        ff >> symbol;
+        out_file += "," + to_string(symbol) + "-{";
+        vector<vector<int>> block(blockH, vector<int>(blockW));
+
+        for (int r = 0; r < blockH; ++r) {
+            if (r) out_file += ",";
+            out_file += "{";
+            for (int c = 0; c < blockW; ++c) {
+                int element;
+                ff >> element;
+                block[r][c] = element;
+                if (element > maxNum) maxNum = element;
+                if (c) out_file += ",";
+                out_file += to_string(element);
+            }
+            out_file += "}";
+        }
+        coding[symbol] = block;
+        out_file += "}";
+    }
+    out_file += ").png";
 
     // create the sequence and save it to a png
     Automatic2D A(startSymbol);
     for (int i = 0; i < iterations; ++i) {
         A.iterate(rules);
     }
-    A.savePNG(out_file, 2, 2);
+    A.iterate(coding);
+    A.savePNG(out_file, 2, maxNum);
 
     return 0;
 }

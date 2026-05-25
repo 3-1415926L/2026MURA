@@ -31,10 +31,8 @@ void pCantor(vector<int>& S, int p) {
     S = move(result);
 }
 
-
-
 // uses (1+x^2+...+x^(2k))^n instead of (1+x^2)^p2
-// note: regular p-Cantor sequence = p-1-Hare sequence
+// note: p-Cantor sequence = (p,1)-Hare sequence
 vector<int> pkHareCoeffs(int n, int k) {
     vector<int> coeffs(2 * k * n + 1);
     int c, sum;
@@ -48,6 +46,7 @@ vector<int> pkHareCoeffs(int n, int k) {
         }
         coeffs[2 * i] = sum; // odd indices already 0
     }
+    return coeffs;
 }
 
 vector<int> zeroPad(vector<int> S) {
@@ -59,7 +58,7 @@ vector<int> zeroPad(vector<int> S) {
 
 
 int main() {
-    vector<int> S = {1};
+    //vector<int> S = {1};
     int max_width = 1000;
     int pixel_size = 1;
     int modulo = 7;

@@ -1,5 +1,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include "tools.hpp"
+
 #include <iostream>
 #include <vector>
 #include <utility>
@@ -11,34 +13,6 @@
 using namespace std;
 
 
-
-// standalone functions
-
-// efficiently finds x^p mod m
-// requires p >= 0, x >= 0
-int modPow(int x, int p, int m) {
-    int res = 1;
-    while (p > 0) {
-        p--;
-        res = (res * x) % m;
-    }
-    return res;
-}
-
-// modular determinant
-long long modpow(long long a, long long e, long long mod) {
-    long long r = 1;
-    while (e > 0) {
-        if (e & 1) r = (r * a) % mod;
-        a = (a * a) % mod;
-        e >>= 1;
-    }
-    return r;
-}
-
-long long modinv(long long a, long long p) {
-    return modpow((a % p + p) % p, p - 2, p);
-}
 
 long long det_mod(vector<vector<long long>> A, long long p) {
     int n = A.size();
@@ -96,7 +70,6 @@ struct NumberWall {
         for (int i = 0; i < modulo; ++i) {
             inverse.push_back(modPow(i, modulo - 2, modulo));
         }
-        //makeWall(S);
         for(int i = 0; i < width; ++i) {
             wall[i] = (modulo + (S[i] % modulo)) % modulo;
         }
@@ -139,125 +112,6 @@ struct NumberWall {
             wall[offset[row] + colStart - row] = value;
             ++colStart;
         }
-    }
-
-    void makeWall(vector<int> S) {
-        // zero/one rows implicitly there
-        // create sequence row
-        for(int i = 0; i < width; ++i) {
-            wall[i] = (modulo + (S[i] % modulo)) % modulo;
-        }
-        // create other rows
-        int row = 1, col = 1;
-        while (row < height) {
-            col = row;
-            while (col < width - row) {
-
-                if (get(row - 2, col) != 0) {
-                    int x = (((get(row - 1, col) * get(row - 1, col))
-                        - (get(row - 1, col - 1) * get(row - 1, col + 1)))
-                        * inverse[get(row - 2, col)]);
-                    set(row, col, (modulo + (x % modulo)) % modulo);
-                    ++col;
-                    continue;
-                }
-
-                // else D_k or H_k (i.e., zero square above)
-                // top, left, & right = row/cols just outside zero square
-                int top = row - 2, left = col, right = col;
-                while (get(top - 1, col) == 0) {
-                    top--;
-                }
-                if (row == col) { // if first col in row, else can assume already at left of zero square
-                    while (valid(top, left - 1) && get(top, left - 1) == 0) {
-                        left--;
-                    }
-                }
-                while (valid(top, right + 1) && get(top, right + 1) == 0) {
-                    right++;
-                }
-                top--;
-                left--;
-                right++;
-
-                // if 0 square extends to edge, W[row,col] must be 0
-                if (!(valid(top,left) && valid(top,right))) {
-                    setRange(row, col, min(right, width - col), 0);
-                    col = right;
-                    continue;
-                }
-
-                // same here
-                if (right - left > row - top) {
-                    setRange(row, col, min(right, width - col), 0);
-                    col = right;
-                    continue;
-                }
-
-                // else, D_k or H_k
-                int l = right - left - 1;
-                int k = right - col;
-                int Ak = get(top, left + k);
-                int Bk = get(top + k, left);
-                int Ck = get(top + l + 1 - k, right);
-
-                int rA = get(top, left + 1) * inverse[get(top, left)] % modulo;
-                int rB = get(top + 1, left) * inverse[get(top, left)] % modulo;
-                int rC = get(top, right) * inverse[get(top + 1, right)] % modulo;
-                // uses relation between rA, rB, rC, and rD
-                int rD = (1 - 2 * (l % 2)) * rB * rC * inverse[rA];
-                rD = (modulo + (rD % modulo)) % modulo;
-                int rDinv = inverse[rD];
-
-                // D_k
-                if (get(row - 1, col) == 0) {
-                    int Dk;
-                    if (row == col) Dk = (1 - 2 * (k % 2 && l % 2)) * Bk * Ck * inverse[Ak];
-                    else Dk = get(row, col - 1) * rDinv;
-                    Dk = (modulo + (Dk % modulo)) % modulo;
-                    set(row, col, Dk);
-                    ++col;
-
-                    // uses fact that Dk is a geometric sequence to create whole row at once
-                    while (col <= right && col < width - row) {
-                        Dk = Dk * rDinv % modulo;
-                        set(row, col, Dk);
-                        ++col;
-                    }
-                    continue;
-                }
-
-                // else, H_k
-                int rAinv = inverse[rA];
-                int rBinv = inverse[rB];
-                int rCinv = inverse[rC];
-                int Dk, Ek, Fk, Gk;
-                
-                // create whole Hk row at once
-                while (col < right && col < width - row) {
-                    Dk = get(row - 1, col);
-                    Ek = get(top - 1, left + k);
-                    Fk = get(top + k, left - 1);
-                    Gk = get(top + l + 1 - k, right + 1);
-
-                    
-                    Ak = get(top, left + k);
-                    Bk = get(top + k, left);
-                    Ck = get(top + l + 1 - k, right);
-
-                    int Hk = Dk * rCinv
-                        * (Ek * rB * inverse[Ak]
-                        + (1 - 2 * (k % 2)) * Fk * rA * inverse[Bk]
-                        - (1 - 2 * (k % 2)) * Gk * rD * inverse[Ck]);
-                    set(row, col, (modulo + (Hk % modulo)) % modulo);
-
-                    ++col;
-                    --k;
-                }
-
-            } // while (col < width - row)
-            ++row;
-        } // while (row < height)
     }
 
     bool valid(int row, int col) {
@@ -355,8 +209,6 @@ struct NumberWall {
         }
         return true;
     }
-
-    
 
     long long get_element(vector<int> S, int row, int col) {
         vector<vector<long long>> A(row + 1, vector<long long>(row + 1));
