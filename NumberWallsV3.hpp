@@ -225,7 +225,8 @@ struct NumberWall {
 
                     if (x == 0) {
                         r = 255;
-                        g = b = 0;
+                        g = 102;
+                        b = 0;
                     }
                     else {
                         r = 0;

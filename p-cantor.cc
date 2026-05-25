@@ -49,6 +49,30 @@ vector<int> pkHareCoeffs(int n, int k) {
     return coeffs;
 }
 
+void pkHare(vector<int>& S, int p, int k) {
+    if (!isPrime(p)) {
+        cout << "Error! p=" << p << "is not prime" << endl;
+        return;
+    }
+    int p2 = (p - 1) / 2;
+    if (p2 % k != 0) {
+        cout << "Error! (p-1)/2=" << p2 << " is not divisible by k=" << k << endl;
+        return;
+    }
+    int n = p2 / k;
+    vector<int> coeffs = pkHareCoeffs(n, k);
+
+    vector<int> result;
+    result.reserve(S.size() * p);
+
+    for (int n : S) {
+        for (int i = 0; i < p; i++) {
+            result.push_back((n * coeffs[i]) % p);
+        }
+    }
+    S = move(result);
+}
+
 vector<int> zeroPad(vector<int> S) {
     vector<int> result(S.size() * 3);
     copy(S.begin(), S.end(), result.begin() + S.size());
@@ -58,21 +82,20 @@ vector<int> zeroPad(vector<int> S) {
 
 
 int main() {
-    //vector<int> S = {1};
-    int max_width = 1000;
+    vector<int> S = {1};
+    int max_width = 2000;
     int pixel_size = 1;
-    int modulo = 7;
+    int p = 13;
+    int k = 3;
+    //cin >> p >> k;
 
-    vector<int> S = pkHareCoeffs(3, 2);
-    printArr(S);
-
-    /*while (S.size() < max_width) {
-        pCantor(S, modulo);
+    while (S.size() < max_width / 3) {
+        pkHare(S, p, k);
     }
     S = zeroPad(S);
     
     int len = S.size();
-    NumberWall W{S, len, modulo};*/
+    NumberWall W{S, len, p};
 
     //for (int i = 0; i < len; ++i) {
     //    cout << S[i];
@@ -85,10 +108,10 @@ int main() {
 
     //string out_file = "pCantorNumberWalls/" + to_string(modulo)
     //                  + "-Cantor_(w=" + to_string(len) + ").png";
-    //string out_file = "pCantorNumberWalls/" + to_string(modulo)
-    //                  + "-(1+x^2+x^4)_(w=" + to_string(len) + ").png";
+    string out_file = "pCantorNumberWalls/(" + to_string(p) + ","
+                      + to_string(k) + ")-Hare_(w=" + to_string(len) + ").png";
 
-    //W.savePNG(out_file, pixel_size, modulo);
+    W.savePNG(out_file, pixel_size, p);
 
     return 0;
 }
