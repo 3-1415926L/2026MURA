@@ -1,7 +1,7 @@
-sequence_file:    pagoda
+sequence_file:    thue_morse_ternary
 max_width:        5000
 pixel_size:       1
-modulo:           79
+modulo:           3
 
 change the above values
 Note:
@@ -27,3 +27,5 @@ inventory_sequence
 prime_gaps
 primes_mod_3
 pagoda
+thue_morse_alt
+thue_morse_ternary

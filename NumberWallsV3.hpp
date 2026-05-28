@@ -39,26 +39,26 @@ struct NumberWall {
     }
 
     // both of these require row <= col < width - row
-    int get(int row, int col) {
+    virtual int get(int row, int col) {
         if (row == -1) return 1;
         if (row < -1) return 0;
         return wall[offset[row] + col - row];
     }
 
     // Sets entries at row, col to value
-    void set(int row, int col, int value) {
+    virtual void set(int row, int col, int value) {
         wall[offset[row] + col - row] = value;
     }
 
     // Sets entries at row, [colStart, colEnd) to value
-    void setRange(int row, int colStart, int colEnd, int value) {
+    virtual void setRange(int row, int colStart, int colEnd, int value) {
         while (colStart < colEnd) {
             wall[offset[row] + colStart - row] = value;
             ++colStart;
         }
     }
 
-    void makeWall(vector<int> S) {
+    virtual void makeWall(vector<int> S) {
         // zero/one rows implicitly there
         // create sequence row
         for(int i = 0; i < width; ++i) {
@@ -181,7 +181,7 @@ struct NumberWall {
         return (row < height && col >= row && col < width - row);
     }
 
-    void printWall() {
+    virtual void printWall() {
         for (int i = 0; i < width; ++i) {
             cout << " " << 0 << " ";
         }
@@ -204,7 +204,7 @@ struct NumberWall {
     }
     
     // save image of number wall
-    void savePNG(string filename, int pixelSize, int mod) {
+    virtual void savePNG(string filename, int pixelSize, int mod) {
         int imgW = width * pixelSize;
         int imgH = height * pixelSize;
 
@@ -274,3 +274,9 @@ struct NumberWall {
         return true;
     }
 };
+
+
+
+// to be added later
+// struct NumberWallSquare { ... };
+// struct NumberWallDet { ... };

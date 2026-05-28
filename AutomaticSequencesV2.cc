@@ -122,6 +122,19 @@ struct Automatic2D {
 unordered_map<string, int> symbolToId;
 vector<string> idToSymbol;
 
+/*
+int getSymbolId(const string& s) {
+    auto it = symbolToId.find(s);
+    if (it != symbolToId.end()) {
+        return it->second;
+    }
+    
+    int id = idToSymbol.size();
+    symbolToId[s] = id;
+    idToSymbol.push_back(s);
+    return id;
+}
+*/
 int getSymbolId(const string& s) {
     auto it = symbolToId.find(s);
     if (it != symbolToId.end()) {
@@ -226,6 +239,32 @@ int main() {
     }
     out_file += ").png";
 
+
+/*// Uncomment to see rules
+    cout << "\nrules:\n\n";
+    for (int s = 0; s < numSymbols; ++s) {
+        cout << idToSymbol[s] << ":" << endl;
+        for (int r = 0; r < 5; ++r) {
+            for (int c = 0; c < 5; ++c) {
+                cout << idToSymbol[rules[s][r][c]] << " ";
+            }
+            cout << endl;
+        }
+        cout << endl << endl;
+    }
+    for (int s = 0; s < numSymbols; ++s) {
+        cout << idToSymbol[s] << ":" << endl;
+        for (int r = 0; r < 1; ++r) {
+            for (int c = 0; c < 1; ++c) {
+                cout << idToSymbol[coding[s][r][c]] << " ";
+            }
+            cout << endl;
+        }
+        cout << endl << endl;
+    }
+//*/
+
+
     // create the sequence and save it to a png
     Automatic2D A(startSymbol);
     for (int i = 0; i < iterations; ++i) {
@@ -234,9 +273,9 @@ int main() {
     A.iterate(coding);
 
     // use if outputted file name is too long
-    //out_file = "imagesAutomaticSequences/a.png";
+    out_file = "imagesAutomaticSequences/a.png";
     
-    A.savePNG(out_file, 2, maxNum);
+    A.savePNG(out_file, 1, maxNum);
 
     return 0;
 }

@@ -79,20 +79,27 @@ vector<int> zeroPad(vector<int> S) {
     return result;
 }
 
+vector<int> zeroPadLeft(vector<int> S) {
+    vector<int> result(S.size() * 2);
+    copy(S.begin(), S.end(), result.begin() + S.size());
+    return result;
+}
+
 
 
 int main() {
     vector<int> S = {1};
-    int max_width = 2000;
+    int max_width = 10000;
     int pixel_size = 1;
-    int p = 13;
-    int k = 3;
+    int p = 5;
+    int k = 2;
     //cin >> p >> k;
 
     while (S.size() < max_width / 3) {
         pkHare(S, p, k);
     }
-    S = zeroPad(S);
+    S.resize(15000);
+    S = zeroPadLeft(S);
     
     int len = S.size();
     NumberWall W{S, len, p};
@@ -108,7 +115,7 @@ int main() {
 
     //string out_file = "pCantorNumberWalls/" + to_string(modulo)
     //                  + "-Cantor_(w=" + to_string(len) + ").png";
-    string out_file = "pCantorNumberWalls/(" + to_string(p) + ","
+    string out_file = "pCantorNumberWalls/---(" + to_string(p) + ","
                       + to_string(k) + ")-Hare_(w=" + to_string(len) + ").png";
 
     W.savePNG(out_file, pixel_size, p);
