@@ -1,6 +1,6 @@
 # Executables
 *.exe
-a.out
+*.out
 
 # Object files
 *.o
@@ -12,3 +12,6 @@ a.out
 # Temporary files
 temp.txt
 sequences/temp.txt
+output.txt
+temp.py
+temp.png
