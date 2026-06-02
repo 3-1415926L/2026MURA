@@ -205,8 +205,8 @@ struct NumberWall {
     
     // save image of number wall
     virtual void savePNG(string filename, int pixelSize, int mod) {
-        int imgW = width * pixelSize;
-        int imgH = height * pixelSize;
+        long long imgW = width * pixelSize;
+        long long imgH = height * pixelSize;
 
         vector<unsigned char> img(imgW * imgH * 3);
 
@@ -238,10 +238,10 @@ struct NumberWall {
                 for (int py = 0; py < pixelSize; ++py) {
                     for (int px = 0; px < pixelSize; ++px) {
 
-                        int X = col * pixelSize + px;
-                        int Y = row * pixelSize + py;
+                        long long X = col * pixelSize + px;
+                        long long Y = row * pixelSize + py;
 
-                        int idx = 3 * (Y * imgW + X);
+                        long long idx = 3 * (Y * imgW + X);
 
                         img[idx + 0] = r;
                         img[idx + 1] = g;
@@ -251,7 +251,7 @@ struct NumberWall {
             }
         }
 
-        stbi_write_png(
+        bool valid_write = stbi_write_png(
             filename.c_str(),
             imgW,
             imgH,
@@ -259,6 +259,81 @@ struct NumberWall {
             img.data(),
             imgW * 3
         );
+        if (!valid_write) cout << "ERROR! Failed to write image." << endl;
+    }
+    
+    // save image of number wall
+    virtual void savePNGSquare(string filename, int pixelSize, int mod) {
+        bool pixelSizeIsOne = (pixelSize == 1);
+        int colStart = 0;
+        while (get(0, colStart) == 0) {
+            ++colStart;
+        }
+        int colEnd = width - colStart;
+        int sideLength = colEnd - colStart;
+
+        long long imgW = sideLength * pixelSize;
+        long long imgH = imgW; // assuming actually a square
+
+        vector<unsigned char> img(imgW * imgH * 3);
+
+        for (int row = 0; row < sideLength; ++row) {
+
+            for (int col = colStart; col < colEnd; ++col) {
+
+                int r, g, b;
+
+                if (!valid(row, col)) {
+                    r = g = b = 255;
+                } else {
+                    int v = get(row, col);
+
+                    int x = ((v % mod) + mod) % mod;
+
+                    if (x == 0) {
+                        r = 255;
+                        g = 102;
+                        b = 0;
+                    }
+                    else {
+                        r = 0;
+                        g = 0;
+                        b = 50 + (205 * x) / (mod - 1);
+                    }
+                }
+
+                if (pixelSizeIsOne) { // faster if pixelSize is 1
+                    long long idx = 3 * (row * imgW + (col - colStart));
+                    img[idx + 0] = r;
+                    img[idx + 1] = g;
+                    img[idx + 2] = b;
+                } else {
+                    for (int py = 0; py < pixelSize; ++py) {
+                        for (int px = 0; px < pixelSize; ++px) {
+
+                            long long X = (col - colStart)  * pixelSize + px;
+                            long long Y = row * pixelSize + py;
+
+                            long long idx = 3 * (Y * imgW + X);
+
+                            img[idx + 0] = r;
+                            img[idx + 1] = g;
+                            img[idx + 2] = b;
+                        }
+                    }
+                }
+            }
+        }
+
+        bool valid_write = stbi_write_png(
+            filename.c_str(),
+            imgW,
+            imgH,
+            3,
+            img.data(),
+            imgW * 3
+        );
+        if (!valid_write) cout << "ERROR! Failed to write image." << endl;
     }
 
     bool validWall() {

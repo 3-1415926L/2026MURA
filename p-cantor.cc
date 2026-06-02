@@ -89,20 +89,24 @@ vector<int> zeroPadLeft(vector<int> S) {
 
 int main() {
     vector<int> S = {1};
-    int max_width = 10000;
+    //cout << "max_size = " << S.max_size() << endl; ///////////////
+    int numIters = 6;
     int pixel_size = 1;
     int p = 5;
     int k = 2;
     //cin >> p >> k;
 
-    while (S.size() < max_width / 3) {
+    for (int i = 0; i < numIters; ++i) {
         pkHare(S, p, k);
     }
-    S.resize(15000);
-    S = zeroPadLeft(S);
+    //S.resize(15000);
+    S = zeroPad(S);
     
     int len = S.size();
+    //cout << "len(S) = " << len << endl; ///////////////
     NumberWall W{S, len, p};
+    cout << "wall created" << endl;
+    //cout << "max W = " << W.wall.max_size() << endl; /////////////
 
     //for (int i = 0; i < len; ++i) {
     //    cout << S[i];
@@ -115,10 +119,12 @@ int main() {
 
     //string out_file = "pCantorNumberWalls/" + to_string(modulo)
     //                  + "-Cantor_(w=" + to_string(len) + ").png";
-    string out_file = "pCantorNumberWalls/---(" + to_string(p) + ","
-                      + to_string(k) + ")-Hare_(w=" + to_string(len) + ").png";
+    //string out_file = "pCantorNumberWalls/---(" + to_string(p) + ","
+    //                  + to_string(k) + ")-Hare_(w=" + to_string(len) + ").png";
+    string out_file = "pCantorNumberWalls/a.png";
 
-    W.savePNG(out_file, pixel_size, p);
+    W.savePNGSquare(out_file, pixel_size, p);
+    cout << "image saved" << endl;
 
     return 0;
 }

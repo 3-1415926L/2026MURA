@@ -52,7 +52,7 @@ long long modinv(long long a, long long p) {
     return modpow((a % p + p) % p, p - 2, p);
 }
 
-void printArr(int S[], int len) {
+void printArr(int S[], int len, ostream& out = cout) {
     if (len == 0) {
         cout << "(empty)" << endl;
         return;
@@ -65,7 +65,7 @@ void printArr(int S[], int len) {
     cout << endl;
 }
 
-void printArr(vector<int> S) {
+void printArr(vector<int> S, ostream& out = cout) {
     if (S.size() == 0) {
         cout << "(empty)" << endl;
         return;
@@ -74,6 +74,19 @@ void printArr(vector<int> S) {
     }
     for (int i = 1; i < S.size(); i++) {
         cout << "," << S[i];
+    }
+    cout << endl;
+}
+
+// prints a 2D vector of anything printable
+//   separated by spaces and newlines
+template <typename T>
+void printGrid(const vector<vector<T>> grid, ostream& out = cout) {
+    for (auto& row : grid) {
+        for (auto& element : row) {
+            cout << element << " ";
+        }
+        cout << endl;
     }
     cout << endl;
 }
