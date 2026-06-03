@@ -50,7 +50,7 @@ ChunkGrid loadImageChunks(const string& filename, int chunkSize) {
                     uint8_t nonZero =
                         (data[idx]     == zeroColour[0] &&
                          data[idx + 1] == zeroColour[1] &&
-                         data[idx + 2] == zeroColour[2])
+                         data[idx + 2 ] == zeroColour[2])
                         ? 0 : 1;
 
                     chunk[y * chunkSize + x] = nonZero;
@@ -144,8 +144,8 @@ string rotate(string symbol) {
 
         else if (c == 'P') c = 'R';
         else if (c == 'R') c = 'P';
-        else if (c == 'Q') c = 'S';
-        else if (c == 'S') c = 'Q';
+        else if (c == 'Q') c = 'T';
+        else if (c == 'T') c = 'Q';
     }
     return base + suffix;
 }
@@ -157,15 +157,15 @@ string reflectH(string symbol) {
 
     for (char& c : suffix) {
         if (c == 'E') c = 'W';
-        else if (c == 'W') c = 'W';
+        else if (c == 'W') c = 'E';
         
         else if (c == 'C') c = 'A';
         else if (c == 'A') c = 'C';
 
         else if (c == 'P') c = 'Q';
         else if (c == 'Q') c = 'P';
-        else if (c == 'R') c = 'S';
-        else if (c == 'S') c = 'R';
+        else if (c == 'R') c = 'T';
+        else if (c == 'T') c = 'R';
     }
     return base + suffix;
 }
@@ -180,8 +180,8 @@ struct Unit {
     string canonicalVariant;
     // "" => all symmetries => 1 variant (canonical = only one)
     // "C" => 90 deg rotational symmetry => 2 variants ("A")
-    // "P" => 180 deg rotational symmetry => 4 variants ("Q", "R", "S")
-    //        (Q = refl(P), R = rot(P), S = rot(refl(P)) = refl(rot(P)))
+    // "P" => 180 deg rotational symmetry => 4 variants ("Q", "R", "T")
+    //        (Q = refl(P), R = rot(P), T = rot(refl(P)) = refl(rot(P)))
     // "V" => 2 reflectional symmetries => 2 variants ("H") 
     // "N" => 1 reflectional symmetry => 4 variants ("E", "S", "W")
     // "NE" => no symmetry => 8 variants ("ES", "SW", "WN", "SE", "WS", "NW", "EN")
@@ -236,15 +236,12 @@ struct Morphism {
         Chunk zeroChunk(side * side, 0);
         units.emplace_back('0', 0, "", zeroChunk, 0, 0);
 
-        // find all the other units
+        // add all the other units
         for (int row = 0; row < sideLength; ++row) {
             for (int col = 0; col < sideLength; ++col) {
                 addUnit(grid[row][col], row, col);
             }
         }
-
-        //cout << "===" << units[0].identifier.size() << endl; ////////////////////////////////
-        //cout << "===" << units[1].identifier.size() << endl;
 
         // create rules map
         for (auto& u : units) {
@@ -255,6 +252,7 @@ struct Morphism {
                     vector<string>(morphismSize, "0"));
                 continue;
             }
+
             // else
             int posX = u.getPosX();
             int posY = u.getPosY();
@@ -274,7 +272,7 @@ struct Morphism {
     void addUnit(Chunk chunk, int row, int col) {
         if (inMorphism(chunk)) return;
 
-        char type = getType(chunk); // modifies chunk
+        char type = getType(chunk);
         int typeIdx = type - 'A';
         int unitIdx = typeCounts[typeIdx];
         string canVar = getCanonicalVariant(chunk);
@@ -297,7 +295,7 @@ struct Morphism {
     }
 
     // assumes chunk is not all zeros
-    char getType(Chunk& chunk) { // not const
+    char getType(Chunk chunk) { // not const
         vector<uint8_t> type;
 
         //int typeSize = morphismSize * morphismSize;
@@ -334,13 +332,6 @@ struct Morphism {
             return 'A' + index;
         } else { // create new type
             char newType = 'A' + types.size();
-
-            // This makes it so that if there's only one symmetry, it will always
-            //   be vertical. This isn't necessary, but it makes naming simpler.
-            if (type == reflectV(type)) { 
-                type = rotate(type);
-                chunk = rotate(chunk);
-            }
             typeCounts.push_back(1);
             types.push_back(type);
             return newType;
@@ -394,8 +385,6 @@ struct Morphism {
         return types.end();
     }
 
-    // assumes vertical symmetry implies horizontal symmetry
-    //    (guaranteed by getType())
     string getCanonicalVariant(Chunk chunk) {
         bool r = (chunk == rotate(chunk));
         bool h = (chunk == reflectH(chunk));
@@ -403,26 +392,29 @@ struct Morphism {
         if (r) return "C";
         bool r180 = (chunk == rotate180(chunk));
         if (r180 && h) return "V";
-        if (h) return "N";
         if (r180) return "P";
+        if (h) return "N";
+        bool v = (chunk == reflectV(chunk));
+        if (v) return "E";
         return "NE";
     }
 
     string getSymbol(Chunk chunk) {
         string symbol;
+        Chunk originalChunk = chunk;
         for (auto& u : units) {
             symbol = u.getSymbol();
+            chunk = originalChunk;
             for (int i = 0; i < 4; ++i) {
                 if (u == chunk) return symbol;
-                chunk = rotate(chunk);
+                chunk = rotateBack(chunk); // rotateBack
                 symbol = rotate(symbol);
             }
             chunk = reflectH(chunk);
-            symbol = reflectH(symbol);
             // again, but reflected
             for (int i = 0; i < 4; ++i) {
-                if (u == chunk) return symbol;
-                chunk = rotate(chunk);
+                if (u == chunk) return reflectH(symbol);
+                chunk = rotateBack(chunk); // rotateBack
                 symbol = rotate(symbol);
             }
         }
@@ -439,17 +431,17 @@ struct Morphism {
         return symbol.substr(pos);
     }
 
-    void printCanonicalMorphism() {
+    void printCanonicalMorphism(ostream& out = cout) {
         for (auto& [symbol, rule] : canonicalRules) {
-            cout << symbol << ":" << endl;
-            printGrid(rule);
+            out << symbol << ":" << endl;
+            printGrid(rule, out);
         }
     }
 
-    void printMorphism() { ///////////////////////////////////////////////
+    void printMorphism(ostream& out = cout) {
         for (auto& [originalSymbol, originalRule] : canonicalRules) {
-            cout << originalSymbol << endl;
-            printGrid(originalRule);
+            out << originalSymbol << endl;
+            printGrid(originalRule, out);
             string suffix = getSuffix(originalSymbol);
 
             if (suffix == "") continue;
@@ -460,44 +452,44 @@ struct Morphism {
             if (suffix == "C") {
                 symbol = reflectH(symbol);
                 rule = reflectHRule(rule);
-                cout << symbol << endl;
-                printGrid(rule);
+                out << symbol << endl;
+                printGrid(rule, out);
                 continue;
             }
 
             if (suffix == "V") {
                 symbol = rotate(symbol);
                 rule = rotateRule(rule);
-                cout << symbol << endl;
-                printGrid(rule);
+                out << symbol << endl;
+                printGrid(rule, out);
                 continue;
             }
 
             if (suffix == "P") {
                 symbol = reflectH(symbol); // Q
                 rule = reflectHRule(rule);
-                cout << symbol << endl;
-                printGrid(rule);
+                out << symbol << endl;
+                printGrid(rule, out);
 
                 symbol = rotate(symbol); // R
                 rule = rotateRule(rule);
-                cout << symbol << endl;
-                printGrid(rule);
+                out << symbol << endl;
+                printGrid(rule, out);
 
                 symbol = reflectH(symbol); // S
                 rule = reflectHRule(rule);
-                cout << symbol << endl;
-                printGrid(rule);
+                out << symbol << endl;
+                printGrid(rule, out);
 
                 continue;
             }
 
-            if (suffix == "N") {
+            if (suffix == "N" || suffix == "E") {
                 for (int i = 0; i < 3; ++i) {
                     symbol = rotate(symbol);
                     rule = rotateRule(rule);
-                    cout << symbol << endl;
-                    printGrid(rule);
+                    out << symbol << endl;
+                    printGrid(rule, out);
                 }
                 continue;
             }
@@ -506,27 +498,93 @@ struct Morphism {
                 for (int i = 0; i < 3; ++i) {
                     symbol = rotate(symbol);
                     rule = rotateRule(rule);
-                    cout << symbol << endl;
-                    printGrid(rule);
+                    out << symbol << endl;
+                    printGrid(rule, out);
                 }
 
                 symbol = rotate(symbol);
                 rule = rotateRule(rule);
                 symbol = reflectH(symbol);
                 rule = reflectHRule(rule);
-                cout << symbol << endl;
-                printGrid(rule);
+                out << symbol << endl;
+                printGrid(rule, out);
 
                 for (int i = 0; i < 3; ++i) { // again but reflected
                     symbol = rotate(symbol);
                     rule = rotateRule(rule);
-                    cout << symbol << endl;
-                    printGrid(rule);
+                    out << symbol << endl;
+                    printGrid(rule, out);
                 }
                 continue;
             }
 
             cerr << "Unknown suffix: " << suffix << endl;
+        }
+    }
+
+    void printCoding(ostream& out = cout) {
+        for (auto& [originalSymbol, originalRule] : canonicalRules) {
+            if (originalSymbol == "0") {
+                out << "0 0" << endl << endl;
+                continue;
+            }
+
+            out << originalSymbol << " 1" << endl << endl;
+            string suffix = getSuffix(originalSymbol);
+
+            if (suffix == "") continue;
+
+            string symbol = originalSymbol;
+
+            if (suffix == "C") {
+                symbol = reflectH(symbol);
+                out << symbol << " 1" << endl << endl;
+                continue;
+            }
+
+            if (suffix == "V") {
+                symbol = rotate(symbol);
+                out << symbol << " 1" << endl << endl;
+                continue;
+            }
+
+            if (suffix == "P") {
+                symbol = reflectH(symbol); // Q
+                out << symbol << " 1" << endl << endl;
+
+                symbol = rotate(symbol); // R
+                out << symbol << " 1" << endl << endl;
+
+                symbol = reflectH(symbol); // S
+                out << symbol << " 1" << endl << endl;
+
+                continue;
+            }
+
+            if (suffix == "N" || suffix == "E") {
+                for (int i = 0; i < 3; ++i) {
+                    symbol = rotate(symbol);
+                    out << symbol << " 1" << endl << endl;
+                }
+                continue;
+            }
+
+            if (suffix == "NE") {
+                for (int i = 0; i < 3; ++i) {
+                    symbol = rotate(symbol);
+                    out << symbol << " 1" << endl << endl;
+                }
+
+                symbol = rotate(symbol);
+                symbol = reflectH(symbol);
+                out << symbol << " 1" << endl << endl;
+
+                for (int i = 0; i < 3; ++i) { // again but reflected
+                    symbol = rotate(symbol);
+                    out << symbol << " 1" << endl << endl;
+                }
+                continue;
+            }
         }
     }
 
@@ -555,29 +613,50 @@ struct Morphism {
         }
         return result;
     }
+
+    int countSymbols() {
+        int count = 0;
+        for (auto& [originalSymbol, originalRule] : canonicalRules) {
+            string suffix = getSuffix(originalSymbol);
+
+            if (suffix == "") count++;
+            else if (suffix == "C" || suffix == "V") count += 2;
+            else if (suffix == "P" || suffix == "N" || suffix == "E") count += 4;
+            else if (suffix == "NE") count += 8;
+            else cerr << "Unknown suffix: " << suffix << endl;
+        }
+        return count;
+    }
 };
 
 
 
 int main() {
 
-    int morphismSize = 3;
+    int morphismSize = 5;
     int minUniqueIter = 2; // need this many iterations to uniquely determine what symbol you're looking at
     string imgFile = R"(imagesAutomaticSequences\3-cantor(auto).png)";
 
-    // imgFile = R"(imagesAutomaticSequences\i=6,s=0,0-{{0,0,0},{0,1,0},{0,0,0}},1-{{1,1,1},{1,1,1},{1,1,1}}.png)";
-    imgFile = R"(imagesAutomaticSequences\a.png)";
-
-    morphismSize = 3;
+    //imgFile = R"(imagesAutomaticSequences\i=6,s=0,0-{{0,0,0},{0,1,0},{0,0,0}},1-{{1,1,1},{1,1,1},{1,1,1}}.png)";
+    //imgFile = R"(imagesAutomaticSequences\a.png)";
+    imgFile = R"(imagesAutomaticSequences\(5,2)-Hare(auto)_(i=6).png)";
+    //imgFile = R"(imagesAutomaticSequences\5-cantor(auto).png)";
+    //imgFile = R"(output.png)";
 
 
 
     Morphism M{imgFile, morphismSize, minUniqueIter};
+
     M.printCanonicalMorphism();
 
     cout << "===========================" << endl;
     
+    //ofstream ff{"temp.txt"};
     M.printMorphism();
+    M.printCoding();
+
+    cout << "Canon len = " << M.canonicalRules.size() << endl;
+    cout << "Full len = " << M.countSymbols() << endl;
 
     //int side = pow(morphismSize, minUniqueIter);
     //Chunk zeroChunk(side * side, 0);

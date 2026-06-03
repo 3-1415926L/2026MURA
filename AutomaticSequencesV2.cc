@@ -11,6 +11,9 @@ using namespace std;
 
 
 
+unordered_map<string, int> symbolToId;
+vector<string> idToSymbol;
+
 struct Automatic2D {
     vector<vector<int>> grid;
     int width;
@@ -43,7 +46,7 @@ struct Automatic2D {
 
                 if (it == rules.end()) {
                     cerr << "Missing rule for symbol "
-                         << symbol << endl;
+                         << idToSymbol[symbol] << endl;
                     exit(1);
                 }
                 auto& block = it->second;
@@ -118,9 +121,6 @@ struct Automatic2D {
 };
 
 
-
-unordered_map<string, int> symbolToId;
-vector<string> idToSymbol;
 
 /*
 int getSymbolId(const string& s) {

@@ -54,28 +54,28 @@ long long modinv(long long a, long long p) {
 
 void printArr(int S[], int len, ostream& out = cout) {
     if (len == 0) {
-        cout << "(empty)" << endl;
+        out << "(empty)" << endl;
         return;
     } else {
-        cout << S[0];
+        out << S[0];
     }
     for (int i = 1; i < len; i++) {
-        cout << "," << S[i];
+        out << "," << S[i];
     }
-    cout << endl;
+    out << endl;
 }
 
 void printArr(vector<int> S, ostream& out = cout) {
     if (S.size() == 0) {
-        cout << "(empty)" << endl;
+        out << "(empty)" << endl;
         return;
     } else {
-        cout << S[0];
+        out << S[0];
     }
     for (int i = 1; i < S.size(); i++) {
-        cout << "," << S[i];
+        out << "," << S[i];
     }
-    cout << endl;
+    out << endl;
 }
 
 // prints a 2D vector of anything printable
@@ -84,11 +84,11 @@ template <typename T>
 void printGrid(const vector<vector<T>> grid, ostream& out = cout) {
     for (auto& row : grid) {
         for (auto& element : row) {
-            cout << element << " ";
+            out << element << " ";
         }
-        cout << endl;
+        out << endl;
     }
-    cout << endl;
+    out << endl;
 }
 
 // requires n > 0

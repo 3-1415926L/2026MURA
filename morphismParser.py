@@ -18,8 +18,7 @@ rotateSpecial = {
     "W10" : "W11",
     "W11" : "W10",
     "H2" : "H3",
-    "H3" : "H2",
-    "" : ""
+    "H3" : "H2"
 }
 
 def rotate(symbol): # 90 degrees clockwise
@@ -27,16 +26,29 @@ def rotate(symbol): # 90 degrees clockwise
         return rotateSpecial[symbol]
     base = symbol[0]
     symbol = symbol[1:]
-    if "N" in symbol:
-        symbol = symbol.replace("E", "S")
-        symbol = symbol.replace("N", "E")
-        symbol = symbol.replace("W", "N")
-        return base + symbol
-    else:
-        symbol = symbol.replace("W", "N")
-        symbol = symbol.replace("S", "W")
-        symbol = symbol.replace("E", "S")
-        return base + symbol
+    result = ""
+    for c in symbol:
+        if c == "E":
+            c = "S"
+        elif c == "N":
+            c = "E"
+        elif c == "W":
+            c = "N"
+        elif c == "S":
+            c = "W"
+        elif c == "V":
+            c = "H"
+        elif c == "H":
+            c = "V"
+        elif c == "P":
+            c = "R"
+        elif c == "R":
+            c = "P"
+        elif c == "Q":
+            c = "T"
+        elif c == "T":
+            c = "Q"
+    return base + result
 
 def rotateGrid(grid):
     h = len(grid)
@@ -51,10 +63,27 @@ def rotateGrid(grid):
     return result
 
 def reflect(symbol): # swaps top and bottom
-    if "N" in symbol:
-        return symbol.replace("N", "S")
-    else:
-        return symbol.replace("S", "N")
+    base = symbol[0]
+    symbol = symbol[1:]
+    result = ""
+    for c in symbol:
+        if c == "N":
+            c = "S"
+        elif c == "S":
+            c = "N"
+        elif c == "C":
+            c = "A"
+        elif c == "A":
+            c = "C"
+        elif c == "P":
+            c = "Q"
+        elif c == "Q":
+            c = "P"
+        elif c == "R":
+            c = "T"
+        elif c == "T":
+            c = "R"
+    return base + result
 
 def reflectGrid(grid):
     h = len(grid)
@@ -92,7 +121,7 @@ print("F\n", \
       "EW 0 0 0 EE\n", \
       "CSW ES ES ES CSE\n", sep="")
 
-with open(R"C:\Users\HP\Downloads\2026 MURA.txt", "r") as file:
+with open(R"C:\Users\HP\Git Repositories\2026MURA\temp.txt", "r") as file:
     lines = file.readlines() # \n at end of each
     i = 0
 
