@@ -52,6 +52,44 @@ long long modinv(long long a, long long p) {
     return modpow((a % p + p) % p, p - 2, p);
 }
 
+// computes the determinant of A, mod p = prime
+long long det_mod(vector<vector<long long>> A, long long p) {
+    int n = A.size();
+    long long det = 1;
+    int sign = 1;
+
+    for (int i = 0; i < n; i++) {
+        int pivot = i;
+        while (pivot < n && A[pivot][i] % p == 0) pivot++;
+
+        if (pivot == n) return 0;
+
+        if (pivot != i) {
+            swap(A[pivot], A[i]);
+            sign = -sign;
+        }
+
+        long long piv = (A[i][i] % p + p) % p;
+        det = (det * piv) % p;
+
+        long long inv = modinv(piv, p);
+
+        for (int j = i + 1; j < n; j++) {
+            long long factor = (A[j][i] % p + p) % p;
+            if (factor == 0) continue;
+
+            long long mult = (factor * inv) % p;
+
+            for (int k = i; k < n; k++) {
+                A[j][k] = (A[j][k] - mult * A[i][k]) % p;
+            }
+        }
+    }
+
+    if (sign == -1) det = (p - det) % p;
+    return det;
+}
+
 void printArr(int S[], int len, ostream& out = cout) {
     if (len == 0) {
         out << "(empty)" << endl;

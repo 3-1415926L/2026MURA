@@ -1,4 +1,4 @@
-#include "NumberWallsV3.hpp"
+#include "NumberWalls.hpp"
 
 #include <iostream>
 #include <vector>
@@ -90,7 +90,7 @@ vector<int> zeroPadLeft(vector<int> S) {
 int main() {
     vector<int> S = {1};
     //cout << "max_size = " << S.max_size() << endl; ///////////////
-    int numIters = 6;
+    int numIters = 5;
     int pixel_size = 1;
     int p = 5;
     int k = 2;
@@ -100,11 +100,10 @@ int main() {
         pkHare(S, p, k);
     }
     //S.resize(15000);
-    S = zeroPad(S);
     
     int len = S.size();
     //cout << "len(S) = " << len << endl; ///////////////
-    NumberWall W{S, len, p};
+    NumberWallSquare W{S, p};
     cout << "wall created" << endl;
     //cout << "max W = " << W.wall.max_size() << endl; /////////////
 
@@ -123,7 +122,7 @@ int main() {
     //                  + to_string(k) + ")-Hare_(w=" + to_string(len) + ").png";
     string out_file = "pCantorNumberWalls/a.png";
 
-    W.savePNGSquare(out_file, pixel_size, p);
+    W.savePNG(out_file, pixel_size, p);
     cout << "image saved" << endl;
 
     return 0;
