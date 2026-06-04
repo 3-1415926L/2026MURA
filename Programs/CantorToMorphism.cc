@@ -1,4 +1,4 @@
-#include "NumberWalls.hpp"
+#include "../Headers/NumberWalls.hpp"
 
 using namespace std;
 

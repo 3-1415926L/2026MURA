@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "name": "Windows",
+            "includePath": [
+                "${workspaceFolder}/Headers",
+                "${workspaceFolder}/**"
+            ],
+            "defines": ["_DEBUG", "UNICODE", "_UNICODE"],
+            "cppStandard": "c++20",
+            "intelliSenseMode": "msvc-x64"
+        }
+    ],
+    "version": 4
+}

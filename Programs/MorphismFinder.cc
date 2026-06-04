@@ -18,12 +18,12 @@ using namespace std;
 using Chunk = vector<uint8_t>;
 using ChunkGrid = vector<vector<Chunk>>;
 using Rule = vector<vector<string>>;
-uint8_t zeroColour[3] = {255, 102, 0};
+uint8_t defaultZeroColour[3] = {255, 102, 0};
 // orange = {255, 102, 0}
 // blue = {0, 0, 255}
 // black = {0, 0, 0}
 
-ChunkGrid loadImageChunks(string& filename, int chunkSize) {
+ChunkGrid loadImageChunks(string& filename, int chunkSize, uint8_t zeroColour[3] = defaultZeroColour) {
     int W, H;
     int C;
     unsigned char* data = stbi_load(filename.c_str(), &W, &H, &C, 3);
@@ -660,7 +660,7 @@ int main() {
 
     //imgFile = R"(imagesAutomaticSequences\i=6,s=0,0-{{0,0,0},{0,1,0},{0,0,0}},1-{{1,1,1},{1,1,1},{1,1,1}}.png)";
     //imgFile = R"(imagesAutomaticSequences\a.png)";
-    imgFile = R"(imagesAutomaticSequences\(5,2)-Hare(auto)_(i=6).png)";
+    imgFile = R"(imagesAutomaticSequences\(5,2)-Cantor(auto)_(i=6).png)";
     //imgFile = R"(imagesAutomaticSequences\5-cantor(auto).png)";
     //imgFile = R"(output.png)";
 

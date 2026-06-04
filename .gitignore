@@ -10,8 +10,19 @@
 *.gch
 
 # Temporary files
-temp.txt
-sequences/temp.txt
-output.txt
-temp.py
-temp.png
+temp*
+output*
+
+# Other
+build/
+build-*/
+
+# CMake temp files
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+compile_commands.json
+*.dir/

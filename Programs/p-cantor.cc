@@ -1,4 +1,5 @@
 #include "NumberWalls.hpp"
+#include "tools.hpp"
 
 #include <iostream>
 #include <vector>
@@ -73,17 +74,6 @@ void pkHare(vector<int>& S, int p, int k) {
     S = move(result);
 }
 
-vector<int> zeroPad(vector<int> S) {
-    vector<int> result(S.size() * 3);
-    copy(S.begin(), S.end(), result.begin() + S.size());
-    return result;
-}
-
-vector<int> zeroPadLeft(vector<int> S) {
-    vector<int> result(S.size() * 2);
-    copy(S.begin(), S.end(), result.begin() + S.size());
-    return result;
-}
 
 
 

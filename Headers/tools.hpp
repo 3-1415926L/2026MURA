@@ -90,6 +90,18 @@ long long det_mod(vector<vector<long long>> A, long long p) {
     return det;
 }
 
+vector<int> zeroPad(vector<int> S) {
+    vector<int> result(S.size() * 3);
+    copy(S.begin(), S.end(), result.begin() + S.size());
+    return result;
+}
+
+vector<int> zeroPadLeft(vector<int> S) {
+    vector<int> result(S.size() * 2);
+    copy(S.begin(), S.end(), result.begin() + S.size());
+    return result;
+}
+
 void printArr(int S[], int len, ostream& out = cout) {
     if (len == 0) {
         out << "(empty)" << endl;
