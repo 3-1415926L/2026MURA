@@ -1,6 +1,6 @@
 =====General:=====
 
-Number_of_iterations:         6
+Number_of_iterations:         5
 Start_symbol:                 A1N
 Number_of_symbols:            164
 

@@ -192,21 +192,21 @@ struct Unit {
         type{type}, index{index}, canonicalVariant{canVar},
         identifier{chunk}, posY{row}, posX{col} {}
 
-    bool operator==(Chunk chunk) {
+    bool operator==(Chunk& chunk) {
         return (identifier == chunk);
     }
 
     // check equality up to rotation/reflection
-    bool isEquivalent(Chunk chunk) {
+    bool isEquivalent(Chunk& chunk) {
         if (identifier == chunk
             || identifier == reflectH(chunk)
             || identifier == reflectV(chunk)
             || identifier == rotate(chunk)) return true;
-        chunk = rotateBack(chunk);
-        if (identifier == chunk
-            || identifier == reflectH(chunk)
-            || identifier == reflectV(chunk)
-            || identifier == rotateBack(chunk)) return true;
+        Chunk chunkCopy = rotateBack(chunk);
+        if (identifier == chunkCopy
+            || identifier == reflectH(chunkCopy)
+            || identifier == reflectV(chunkCopy)
+            || identifier == rotateBack(chunkCopy)) return true;
         return false;
     }
 
@@ -229,11 +229,16 @@ struct Morphism {
     Morphism(string imgFile, int morphismSize, int minUniqueIter):
                                         morphismSize{morphismSize} {
         ChunkGrid grid = loadImageChunks(imgFile, pow(morphismSize, minUniqueIter));
+
+        findMorphism(grid);
+    }
+
+    void findMorphism(ChunkGrid& grid){
         int sideLength = grid.size() / morphismSize;
 
         // add 0 unit
-        int side = pow(morphismSize, minUniqueIter);
-        Chunk zeroChunk(side * side, 0);
+        //int side = pow(morphismSize, minUniqueIter);
+        Chunk zeroChunk(grid[0][0].size(), 0);
         units.emplace_back('0', 0, "", zeroChunk, 0, 0);
 
         // add all the other units
@@ -269,7 +274,7 @@ struct Morphism {
         }
     }
 
-    void addUnit(Chunk chunk, int row, int col) {
+    void addUnit(Chunk& chunk, int row, int col) {
         if (inMorphism(chunk)) return;
 
         char type = getType(chunk);
@@ -280,26 +285,16 @@ struct Morphism {
         units.emplace_back(type, unitIdx, canVar, chunk, row, col);
     }
 
-    bool inMorphism(Chunk chunk) {
+    bool inMorphism(Chunk& chunk) {
         for (auto& u : units) {
             if (u.isEquivalent(chunk)) return true;
         }
         return false;
     }
 
-    bool inTypes(vector<uint8_t> type) {
-        for (auto& t : types) {
-            if (t == type) return true;
-        }
-        return false;
-    }
-
     // assumes chunk is not all zeros
-    char getType(Chunk chunk) { // not const
+    char getType(Chunk& chunk) {
         vector<uint8_t> type;
-
-        //int typeSize = morphismSize * morphismSize;
-        //int typesPerChunk = chunk.size() / typeSize;
 
         int sideLength = sqrt(chunk.size());
         int S = sideLength / morphismSize;
@@ -343,49 +338,39 @@ struct Morphism {
             if (*it == type) return it;
             type = rotate(type);
             if (*it == type) {
-                chunk = rotate(chunk);
                 return it;
             }
             type = rotate(type);
             if (*it == type) {
-                chunk = rotate180(chunk);
                 return it;
             }
             type = rotate(type);
             if (*it == type) {
-                chunk = rotateBack(chunk);
                 return it;
             }
             type = rotate(type);
             type = reflectH(type);
             // again, but reflected
             if (*it == type) {
-                chunk = reflectH(chunk);
                 return it;
             }
             type = rotate(type);
             if (*it == type) {
-                chunk = reflectH(chunk);
-                chunk = rotate(chunk);
                 return it;
             }
             type = rotate(type);
             if (*it == type) {
-                chunk = reflectH(chunk);
-                chunk = rotate180(chunk);
                 return it;
             }
             type = rotate(type);
             if (*it == type) {
-                chunk = reflectH(chunk);
-                chunk = rotateBack(chunk);
                 return it;
             }
         }
         return types.end();
     }
 
-    string getCanonicalVariant(Chunk chunk) {
+    string getCanonicalVariant(Chunk& chunk) {
         bool r = (chunk == rotate(chunk));
         bool h = (chunk == reflectH(chunk));
         if (r && h) return "";
@@ -399,7 +384,7 @@ struct Morphism {
         return "NE";
     }
 
-    string getSymbol(Chunk chunk) {
+    string getSymbol(Chunk chunk) { // not by reference
         string symbol;
         Chunk originalChunk = chunk;
         for (auto& u : units) {
@@ -421,7 +406,7 @@ struct Morphism {
         return "[Not Found]";
     }
 
-    string getSuffix(const string symbol) const {
+    string getSuffix(const string& symbol) const {
         if (symbol == "0")
             return "";
         int pos = 1; // skip first letter
