@@ -11,6 +11,9 @@ using namespace std;
 
 
 
+unordered_map<string, int> symbolToId;
+vector<string> idToSymbol;
+
 struct Automatic2D {
     vector<vector<int>> grid;
     int width;
@@ -31,7 +34,10 @@ struct Automatic2D {
     void iterate(unordered_map<int, vector<vector<int>>>& rules) {
         int blockH = rules.begin()->second.size();
         int blockW = rules.begin()->second[0].size();
-        vector<vector<int>> next(height * blockH, vector<int>(width * blockW));
+        vector<vector<int>> next(
+            height * blockH,
+            vector<int>(width * blockW)
+        );
 
         for (int r = 0; r < height; ++r) {
             for (int c = 0; c < width; ++c) {
@@ -40,7 +46,7 @@ struct Automatic2D {
 
                 if (it == rules.end()) {
                     cerr << "Missing rule for symbol "
-                         << symbol << endl;
+                         << idToSymbol[symbol] << endl;
                     exit(1);
                 }
                 auto& block = it->second;
@@ -80,7 +86,7 @@ struct Automatic2D {
                     else {
                         r = 0;
                         g = 0;
-                        b = 50 + (205 * x) / (maxNum);
+                        b = 50 + (205 * x) / maxNum;
                     }
                 }
 
@@ -98,6 +104,7 @@ struct Automatic2D {
                 }
             }
         }
+
         stbi_write_png(
             filename.c_str(),
             imgW,
@@ -111,39 +118,81 @@ struct Automatic2D {
 
 
 
+/*
+int getSymbolId(const string& s) {
+    auto it = symbolToId.find(s);
+    if (it != symbolToId.end()) {
+        return it->second;
+    }
+    
+    int id = idToSymbol.size();
+    symbolToId[s] = id;
+    idToSymbol.push_back(s);
+    return id;
+}
+*/
+int getSymbolId(const string& s) {
+    auto it = symbolToId.find(s);
+    if (it != symbolToId.end()) {
+        return it->second;
+    }
+    
+    int id = idToSymbol.size();
+    symbolToId[s] = id;
+    idToSymbol.push_back(s);
+    return id;
+}
+
+
+
 int main() {
 
     ifstream ff("inputAutomaticSequences.txt");
-    int iterations, blockH, blockW, startSymbol, numSymbols;
-    // temp is a pointless string so that I can have notes in my input file
+    int iterations, blockH, blockW, numSymbols;
+    string startSymbolString;
+
+    // temp is a pointless string so that
+    // I can have notes in my input file
     string temp;
 
     // read General information
     ff >> temp >> temp >> iterations;
-    ff >> temp >> startSymbol;
+    ff >> temp >> startSymbolString;
     ff >> temp >> numSymbols;
-    string out_file = "imagesAutomaticSequences/i=" + to_string(iterations)
-                      + ",s=" + to_string(startSymbol) + "r=(";
+    int startSymbol = getSymbolId(startSymbolString);
+
+    string out_file =
+        "imagesAutomaticSequences/i="
+        + to_string(iterations)
+        + ",s="
+        + startSymbolString
+        + ",r=(";
 
     // read Rules information
     ff >> temp >> temp >> blockH >> blockW;
     unordered_map<int, vector<vector<int>>> rules;
 
     for (int s = 0; s < numSymbols; ++s) {
-        int symbol;
-        ff >> symbol;
-        out_file += "," + to_string(symbol) + "-{";
-        vector<vector<int>> block(blockH, vector<int>(blockW));
+        string symbolString;
+        ff >> symbolString;
+        int symbol = getSymbolId(symbolString);
+        if (s) out_file += ",";
+        out_file += symbolString + "-{";
+        vector<vector<int>> block(
+            blockH,
+            vector<int>(blockW)
+        );
 
         for (int r = 0; r < blockH; ++r) {
             if (r) out_file += ",";
             out_file += "{";
             for (int c = 0; c < blockW; ++c) {
-                int element;
-                ff >> element;
+                string elementString;
+                ff >> elementString;
+                int element = getSymbolId(elementString);
                 block[r][c] = element;
                 if (c) out_file += ",";
-                out_file += to_string(element);
+                out_file += elementString;
             }
             out_file += "}";
         }
@@ -158,10 +207,15 @@ int main() {
     int maxNum = 0;
 
     for (int s = 0; s < numSymbols; ++s) {
-        int symbol;
-        ff >> symbol;
-        out_file += "," + to_string(symbol) + "-{";
-        vector<vector<int>> block(blockH, vector<int>(blockW));
+        string symbolString;
+        ff >> symbolString;
+        int symbol = getSymbolId(symbolString);
+        if (s) out_file += ",";
+        out_file += symbolString + "-{";
+        vector<vector<int>> block(
+            blockH,
+            vector<int>(blockW)
+        );
 
         for (int r = 0; r < blockH; ++r) {
             if (r) out_file += ",";
@@ -181,13 +235,43 @@ int main() {
     }
     out_file += ").png";
 
+
+/*// Uncomment to see rules
+    cout << "\nrules:\n\n";
+    for (int s = 0; s < numSymbols; ++s) {
+        cout << idToSymbol[s] << ":" << endl;
+        for (int r = 0; r < 5; ++r) {
+            for (int c = 0; c < 5; ++c) {
+                cout << idToSymbol[rules[s][r][c]] << " ";
+            }
+            cout << endl;
+        }
+        cout << endl << endl;
+    }
+    for (int s = 0; s < numSymbols; ++s) {
+        cout << idToSymbol[s] << ":" << endl;
+        for (int r = 0; r < 1; ++r) {
+            for (int c = 0; c < 1; ++c) {
+                cout << idToSymbol[coding[s][r][c]] << " ";
+            }
+            cout << endl;
+        }
+        cout << endl << endl;
+    }
+//*/
+
+
     // create the sequence and save it to a png
     Automatic2D A(startSymbol);
     for (int i = 0; i < iterations; ++i) {
         A.iterate(rules);
     }
     A.iterate(coding);
-    A.savePNG(out_file, 2, maxNum);
+
+    // use if outputted file name is too long
+    out_file = "imagesAutomaticSequences/a.png";
+    
+    A.savePNG(out_file, 1, maxNum);
 
     return 0;
 }

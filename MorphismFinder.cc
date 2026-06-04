@@ -21,8 +21,9 @@ using Rule = vector<vector<string>>;
 uint8_t zeroColour[3] = {255, 102, 0};
 // orange = {255, 102, 0}
 // blue = {0, 0, 255}
+// black = {0, 0, 0}
 
-ChunkGrid loadImageChunks(const string& filename, int chunkSize) {
+ChunkGrid loadImageChunks(string& filename, int chunkSize) {
     int W, H;
     int C;
     unsigned char* data = stbi_load(filename.c_str(), &W, &H, &C, 3);
@@ -60,6 +61,34 @@ ChunkGrid loadImageChunks(const string& filename, int chunkSize) {
     }
 
     stbi_image_free(data);
+    return chunks;
+}
+
+ChunkGrid loadWallChunks(vector<vector<int>>& wall, int chunkSize) {
+    int H = wall.size();
+    int W = wall[0].size();
+
+    int chunksX = W / chunkSize;
+    int chunksY = H / chunkSize;
+    ChunkGrid chunks(chunksY, vector<Chunk>(chunksX));
+
+    for (int cy = 0; cy < chunksY; ++cy) {
+        for (int cx = 0; cx < chunksX; ++cx) {
+
+            Chunk& chunk = chunks[cy][cx];
+            chunk.resize(chunkSize * chunkSize);
+            for (int y = 0; y < chunkSize; ++y) {
+                for (int x = 0; x < chunkSize; ++x) {
+
+                    int globalX = cx * chunkSize + x;
+                    int globalY = cy * chunkSize + y;
+
+                    chunk[y * chunkSize + x] = (wall[globalY][globalX] == 0) ? 0 : 1;
+                }
+            }
+        }
+    }
+
     return chunks;
 }
 
@@ -226,10 +255,17 @@ struct Morphism {
     vector<int> typeCounts; // 0 symbol not counted
     map<string, Rule> canonicalRules;
 
-    Morphism(string imgFile, int morphismSize, int minUniqueIter):
+    // ctor
+    Morphism(string& imgFile, int morphismSize, int minUniqueIter):
                                         morphismSize{morphismSize} {
         ChunkGrid grid = loadImageChunks(imgFile, pow(morphismSize, minUniqueIter));
+        findMorphism(grid);
+    }
 
+    // alt ctor that can accept a NumberWallSquare's wall
+    Morphism(vector<vector<int>>& wall, int morphismSize, int minUniqueIter):
+                                        morphismSize{morphismSize} {
+        ChunkGrid grid = loadWallChunks(wall, pow(morphismSize, minUniqueIter));
         findMorphism(grid);
     }
 
