@@ -12,6 +12,7 @@
 # Temporary files
 temp*
 output*
+a.*
 
 # Other
 build/

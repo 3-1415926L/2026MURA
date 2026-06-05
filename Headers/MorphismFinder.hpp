@@ -1,3 +1,5 @@
+#pragma once
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "tools.hpp"
@@ -649,39 +651,3 @@ struct Morphism {
         return count;
     }
 };
-
-
-
-int main() {
-
-    int morphismSize = 5;
-    int minUniqueIter = 2; // need this many iterations to uniquely determine what symbol you're looking at
-    string imgFile = R"(imagesAutomaticSequences\3-cantor(auto).png)";
-
-    //imgFile = R"(imagesAutomaticSequences\i=6,s=0,0-{{0,0,0},{0,1,0},{0,0,0}},1-{{1,1,1},{1,1,1},{1,1,1}}.png)";
-    //imgFile = R"(imagesAutomaticSequences\a.png)";
-    imgFile = R"(imagesAutomaticSequences\(5,2)-Cantor(auto)_(i=6).png)";
-    //imgFile = R"(imagesAutomaticSequences\5-cantor(auto).png)";
-    //imgFile = R"(output.png)";
-
-
-
-    Morphism M{imgFile, morphismSize, minUniqueIter};
-
-    M.printCanonicalMorphism();
-
-    cout << "===========================" << endl;
-    
-    //ofstream ff{"temp.txt"};
-    M.printMorphism();
-    M.printCoding();
-
-    cout << "Canon len = " << M.canonicalRules.size() << endl;
-    cout << "Full len = " << M.countSymbols() << endl;
-
-    //int side = pow(morphismSize, minUniqueIter);
-    //Chunk zeroChunk(side * side, 0);
-    //cout << M.getSymbol(zeroChunk);
-
-    return 0;
-}

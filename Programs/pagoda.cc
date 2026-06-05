@@ -1,3 +1,4 @@
+#include "tools.hpp"
 #include "NumberWalls.hpp"
 
 #include <iostream>

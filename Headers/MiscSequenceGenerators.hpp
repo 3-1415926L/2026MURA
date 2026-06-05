@@ -1,3 +1,7 @@
+#pragma once
+
+#include "tools.hpp"
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -37,21 +41,21 @@ string lookAndSayNext(const string& s) {
     return result;
 }
 
-void lookAndSay(int numTerms) {
+vector<int> lookAndSay(int numTerms) {
     string term = "1", S = "1";
     while (S.length() < numTerms) {
         term = lookAndSayNext(term);
         S = S + term;
     }
-    saveSeq(S, "look_and_say");
+    return toVectorInt(S);
 }
 
-void lookAndSayAlt(int numTerms) {
+vector<int> lookAndSayAlt(int numTerms) {
     string S = "1";
     while (S.length() < numTerms) {
         S = S + lookAndSayNext(S);
     }
-    saveSeq(S, "look_and_say_alt");
+    return toVectorInt(S);
 }
 
 vector<int> pagodaNext(vector<int> S) {
@@ -106,7 +110,7 @@ vector<int> pagodaCode(vector<int> S) {
     return result;
 }
 
-void pagoda(int numTerms) {
+vector<int> pagoda(int numTerms) {
     vector<int> S = {1};
     numTerms = numTerms / 4 + 1;
     while (S.size() < numTerms) {
@@ -114,13 +118,76 @@ void pagoda(int numTerms) {
     }
     S = pagodaCode(S);
     S.erase(S.begin());
-    saveSeq(S, "pagoda");
+    return S;
 }
 
-int main() {
-    
-    int numTerms = 10000;
-    pagoda(numTerms);
+vector<int> pCantor(int p, int numIters) {
+    int p2 = (p - 1) / 2;
+    vector<int> binCoeff = {1};
 
-    return 0;
+    for (int i = 1; i <= p2; i++) {
+        binCoeff.push_back(chooseModP(p2, i, p));
+    }
+    vector<int> S = {1};
+
+    for (int i = 0; i < numIters; ++i) {
+        vector<int> result;
+        result.reserve(S.size() * p);
+
+        for (int n : S) {
+            result.push_back(n);
+            for (int i = 1; i <= p2; i++) {
+                result.push_back(0);
+                result.push_back((n * binCoeff[i]) % p);
+            }
+        }
+        S = move(result);
+    }
+    return S;
+}
+
+vector<int> pkCantorCoeffs(int n, int k) {
+    vector<int> coeffs(2 * k * n + 1);
+    int c, sum;
+    for (int i = 0; i <= k * n; ++i) { // includes first and last indices
+        c = -1;
+        sum = 0;
+        for (int j = 0; j <= i / (k + 1); ++j) {
+            c = 0 - c; // first term has c = 1
+            sum += c * choose(n, j)
+                   * choose(i - j * (k + 1) + n - 1, n - 1);
+        }
+        coeffs[2 * i] = sum; // odd indices already 0
+    }
+    return coeffs;
+}
+
+// uses (1+x^2+...+x^(2k))^n instead of (1+x^2)^p2
+// note: p-Cantor sequence = (p,1)-Cantor sequence
+vector<int> pkCantor(int p, int k, int numIters) {
+    vector<int> S = {1};
+    if (!isPrime(p)) {
+        cout << "Error! p=" << p << "is not prime" << endl;
+        return S;
+    }
+    int p2 = (p - 1) / 2;
+    if (p2 % k != 0) {
+        cout << "Error! (p-1)/2=" << p2 << " is not divisible by k=" << k << endl;
+        return S;
+    }
+    int n = p2 / k;
+    vector<int> coeffs = pkCantorCoeffs(n, k);
+
+    for (int i = 0; i < numIters; ++i) {
+        vector<int> result;
+        result.reserve(S.size() * p);
+
+        for (int n : S) {
+            for (int i = 0; i < p; i++) {
+                result.push_back((n * coeffs[i]) % p);
+            }
+        }
+        S = move(result);
+    }
+    return S;
 }

@@ -31,7 +31,7 @@ struct NumberWall {
     vector<int> inverse;
 
     // ctor
-    NumberWall(vector<int> S, int w, int modulo): width{w}, height{(w + 1) / 2}, modulo{modulo} {
+    NumberWall(vector<int>& S, int w, int modulo): width{w}, height{(w + 1) / 2}, modulo{modulo} {
         int total = 0;
         for (int n = w; n >= 1; n -= 2) {
             offset.push_back(total);
@@ -64,7 +64,7 @@ struct NumberWall {
         }
     }
 
-    virtual void makeWall(vector<int> S) {
+    virtual void makeWall(vector<int>& S) {
         // zero/one rows implicitly there
         // create sequence row
         for(int i = 0; i < width; ++i) {
@@ -371,7 +371,7 @@ struct NumberWallDet {
     vector<int> inverse; // used for precomputing modular inverses
 
     // ctor
-    NumberWallDet(vector<int> S, int w, int modulo): width{w}, height{(w + 1) / 2}, modulo{modulo} {
+    NumberWallDet(vector<int>& S, int w, int modulo): width{w}, height{(w + 1) / 2}, modulo{modulo} {
         int total = 0;
         for (int n = w; n >= 1; n -= 2) {
             offset.push_back(total);
@@ -546,7 +546,7 @@ struct NumberWallNoMod {
     int height; // does not include row -1 or -2
 
     // ctor
-    NumberWallNoMod(vector<int> S, int w, bool print): width{w}, height{(w + 1) / 2} {
+    NumberWallNoMod(vector<int>& S, int w, bool print): width{w}, height{(w + 1) / 2} {
         int total = 0;
         for (int n = w; n >= 1; n -= 2) {
             offset.push_back(total);
@@ -570,7 +570,7 @@ struct NumberWallNoMod {
         wall[offset[row] + col - row] = value;
     }
 
-    void makeWall(vector<int> S, bool print) {
+    void makeWall(vector<int>& S, bool print) {
         // zero/one rows implicitly there
         // if (print) print rows -2 and -1
         if (print) {
@@ -786,7 +786,7 @@ struct NumberWallSquare {
     vector<int> inverse;
 
     // ctor
-    NumberWallSquare(vector<int> S, int modulo):
+    NumberWallSquare(vector<int>& S, int modulo):
             width{static_cast<int>(S.size())}, height{static_cast<int>(S.size())},
             modulo{modulo}, wall{S.size(), vector<int>(S.size())} {
         int total = 0;
@@ -816,7 +816,7 @@ struct NumberWallSquare {
         }
     }
 
-    virtual void makeWall(vector<int> S) {
+    virtual void makeWall(vector<int>& S) {
         // zero/one rows implicitly there
         // create sequence row
         for(int i = 0; i < width; ++i) {

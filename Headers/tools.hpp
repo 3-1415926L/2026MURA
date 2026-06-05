@@ -172,3 +172,14 @@ int chooseModP(int n, int k, int p) {
     int denominator_inverse = modPow(denominator, p - 2, p);
     return numerator * denominator_inverse % p;
 }
+
+vector<int> toVectorInt(string& S) {
+    vector<int> result;
+    result.reserve(S.size());
+
+    for (char c : S) {
+        result.push_back(c - '0');
+    }
+
+    return result;
+}
