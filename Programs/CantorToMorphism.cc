@@ -1,6 +1,7 @@
+#include "MiscSequenceGenerators.hpp"
 #include "NumberWalls.hpp"
 #include "MorphismFinder.hpp"
-#include "MiscSequenceGenerators.hpp"
+#include "AutomaticSequences.hpp"
 
 #include <vector>
 #include <string>
@@ -33,6 +34,8 @@ int main() {
     cout << "Found Morphism (canon size = "
          << M.canonicalRules.size() << ") (full size = "
          << M.countSymbols() << ")" << endl;
+    
+    
 
     ofstream ff{"temp.txt"};
     M.printCanonicalMorphism(ff);
