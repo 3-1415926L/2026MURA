@@ -1,6 +1,6 @@
 #pragma once
 
-#define STB_IMAGE_IMPLEMENTATION
+//#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "tools.hpp"
 
@@ -649,5 +649,82 @@ struct Morphism {
             else cerr << "Unknown suffix: " << suffix << endl;
         }
         return count;
+    }
+
+    map<string, Rule> getRules() {
+        map<string, Rule> rules;
+        for (auto& [originalSymbol, originalRule] : canonicalRules) {
+            rules[originalSymbol] = originalRule;
+
+            string suffix = getSuffix(originalSymbol);
+
+            if (suffix == "") continue;
+
+            string symbol = originalSymbol;
+            Rule rule = originalRule;
+
+            if (suffix == "C") {
+                symbol = reflectH(symbol);
+                rule = reflectHRule(rule);
+                rules[symbol] = rule;
+                continue;
+            }
+
+            if (suffix == "V") {
+                symbol = rotate(symbol);
+                rule = rotateRule(rule);
+                rules[symbol] = rule;
+                continue;
+            }
+
+            if (suffix == "P") {
+                symbol = reflectH(symbol); // Q
+                rule = reflectHRule(rule);
+                rules[symbol] = rule;
+
+                symbol = rotate(symbol); // R
+                rule = rotateRule(rule);
+                rules[symbol] = rule;
+
+                symbol = reflectH(symbol); // S
+                rule = reflectHRule(rule);
+                rules[symbol] = rule;
+
+                continue;
+            }
+
+            if (suffix == "N" || suffix == "E") {
+                for (int i = 0; i < 3; ++i) {
+                    symbol = rotate(symbol);
+                    rule = rotateRule(rule);
+                    rules[symbol] = rule;
+                }
+                continue;
+            }
+
+            if (suffix == "NE") {
+                for (int i = 0; i < 3; ++i) {
+                    symbol = rotate(symbol);
+                    rule = rotateRule(rule);
+                    rules[symbol] = rule;
+                }
+
+                symbol = rotate(symbol);
+                rule = rotateRule(rule);
+                symbol = reflectH(symbol);
+                rule = reflectHRule(rule);
+                rules[symbol] = rule;
+
+                for (int i = 0; i < 3; ++i) { // again but reflected
+                    symbol = rotate(symbol);
+                    rule = rotateRule(rule);
+                    rules[symbol] = rule;
+                }
+                continue;
+            }
+
+            cerr << "Unknown suffix: " << suffix << endl;
+        }
+        return rules;
     }
 };

@@ -1,3 +1,4 @@
+#include "tools.hpp"
 #include "MiscSequenceGenerators.hpp"
 #include "NumberWalls.hpp"
 #include "MorphismFinder.hpp"
@@ -5,6 +6,7 @@
 
 #include <vector>
 #include <string>
+#include <fstream>
 
 using namespace std;
 
@@ -12,7 +14,7 @@ using namespace std;
 
 int main() {
 
-    int pixel_size = 1;
+    int pixelSize = 1;
     int numIters = 6;
     int p = 5;
     int k = 2;
@@ -27,20 +29,30 @@ int main() {
          << ")-Cantor Sequence (len = "
          << S.size() << ")" << endl;
 
-    NumberWallSquare W(S, p);
+    NumberWallSquare W{S, p};
     cout << "Created Number Wall" << endl;
 
     Morphism M{W.wall, morphismSize, minUniqueIter};
     cout << "Found Morphism (canon size = "
          << M.canonicalRules.size() << ") (full size = "
          << M.countSymbols() << ")" << endl;
-    
-    
 
     ofstream ff{"temp.txt"};
     M.printCanonicalMorphism(ff);
+    cout << "\n=========================\n";
     M.printMorphism(ff);
+    cout << "\n=========================\n";
     M.printCoding(ff);
+    cout << "Saved Morphism to temp.txt" << endl;
+
+    string startSymbol = M.units[1].getSymbol(); // M.units[1] = "0" rule
+    Automatic2D A{toUnorderedMap(M.getRules()), startSymbol, numIters};
+    cout << "Created Automatic Sequence" << endl;
+
+    W.savePNG("a.png", pixelSize);
+    cout << "Saved Number Wall image as a.png" << endl;
+    A.savePNG("b.png", pixelSize);
+    cout << "Saved Automatic Sequence image as b.png" << endl;
 
     return 0;
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
+//#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
 #include <vector>
@@ -76,19 +76,56 @@ struct Automatic2D {
         }
         applyCoding();
     }
-/*
-    int getSymbolId(const string& s) {
-        auto it = symbolToId.find(s);
-        if (it != symbolToId.end()) {
-            return it->second;
+
+    // if no coding provided, use default coding:
+    // "0" -> 0, everything else -> 1
+    Automatic2D(unordered_map<string, vector<vector<string>>> rulesString,
+                string& startString, int numIters): width{1}, height{1} {
+        // create symbolToId and idToSymbol
+        // assumes each symbol is unique
+        int c = 0;
+        for (auto& [symbol, rule] : rulesString) {
+            idToSymbol.push_back(symbol);
+            symbolToId[symbol] = c;
+            ++c;
+        }
+
+        // get starting symbol
+        if (symbolToId.find(startString) == symbolToId.end()) {
+            cout << "Error! Invalid start symbol" << endl;
+        }
+        int startInt = symbolToId[startString];
+
+        // create rules map
+        int blockH = rulesString[startString].size();
+        int blockW = rulesString[startString][0].size();
+        for (auto& [symbol, rule] : rulesString) {
+            vector<vector<int>> block;
+            for (int r = 0; r < blockH; ++r) {
+                block.push_back({});
+                for (int c = 0; c < blockW; ++c) {
+                    block[r].push_back(symbolToId[rule[r][c]]);
+                }
+            }
+            rules[symbolToId[symbol]] = block;
+        }
+
+        // iterate rules numIters times
+        grid = {{startInt}};
+        for (int i = 0; i < numIters; ++i) {
+            applyRules();
         }
         
-        int id = idToSymbol.size();
-        symbolToId[s] = id;
-        idToSymbol.push_back(s);
-        return id;
+        // apply default coding
+        string zero = "0";
+        int zeroId = symbolToId[zero];
+        for (int r = 0; r < height; ++r) {
+            for (int c = 0; c < width; ++c) {
+                grid[r][c] = (grid[r][c] != zeroId);
+            }
+        }
     }
-*/
+    
     int get(int r, int c) {
         return grid[r][c];
     }

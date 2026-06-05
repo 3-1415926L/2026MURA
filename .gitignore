@@ -13,6 +13,7 @@
 temp*
 output*
 a.*
+b.*
 
 # Other
 build/

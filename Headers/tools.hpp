@@ -6,6 +6,8 @@
 #include <cmath>
 #include <string>
 #include <algorithm>
+#include <map>
+#include <unordered_map>
 
 using namespace std;
 
@@ -102,7 +104,7 @@ vector<int> zeroPadLeft(vector<int> S) {
     return result;
 }
 
-void printArr(int S[], int len, ostream& out = cout) {
+void printArr(const int S[], int len, ostream& out = cout) {
     if (len == 0) {
         out << "(empty)" << endl;
         return;
@@ -115,7 +117,7 @@ void printArr(int S[], int len, ostream& out = cout) {
     out << endl;
 }
 
-void printArr(vector<int> S, ostream& out = cout) {
+void printArr(const vector<int>& S, ostream& out = cout) {
     if (S.size() == 0) {
         out << "(empty)" << endl;
         return;
@@ -131,7 +133,7 @@ void printArr(vector<int> S, ostream& out = cout) {
 // prints a 2D vector of anything printable
 //   separated by spaces and newlines
 template <typename T>
-void printGrid(const vector<vector<T>> grid, ostream& out = cout) {
+void printGrid(const vector<vector<T>>& grid, ostream& out = cout) {
     for (auto& row : grid) {
         for (auto& element : row) {
             out << element << " ";
@@ -173,7 +175,7 @@ int chooseModP(int n, int k, int p) {
     return numerator * denominator_inverse % p;
 }
 
-vector<int> toVectorInt(string& S) {
+vector<int> toVectorInt(const string& S) {
     vector<int> result;
     result.reserve(S.size());
 
@@ -182,4 +184,22 @@ vector<int> toVectorInt(string& S) {
     }
 
     return result;
+}
+
+template<typename T, typename U>
+unordered_map<T, U> toUnorderedMap(const map<T, U>& M) {
+    unordered_map<T, U> UM;
+    for (auto& [key, value] : M) {
+        UM[key] = value;
+    }
+    return UM;
+}
+
+template<typename T, typename U>
+map<T, U> toMap(const unordered_map<T, U>& UM) {
+    map<T, U> M;
+    for (auto& [key, value] : UM) {
+        M[key] = value;
+    }
+    return M;
 }

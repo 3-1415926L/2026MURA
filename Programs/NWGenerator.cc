@@ -12,17 +12,17 @@ int main() {
     vector<int> S;
     ifstream ff{"inputNumberWalls.txt"};
     // temp is a pointless string so that I can have notes in my input file
-    string sequence_file, temp;
-    int max_width, pixel_size, modulo;
-    ff >> temp >> sequence_file;
-    ff >> temp >> max_width;
-    ff >> temp >> pixel_size;
+    string sequenceFile, temp;
+    int maxWidth, pixelSize, modulo;
+    ff >> temp >> sequenceFile;
+    ff >> temp >> maxWidth;
+    ff >> temp >> pixelSize;
     ff >> temp >> modulo;
-    string full_sequence_file = "sequences/" + sequence_file + ".txt";
+    string fullSequenceFile = "sequences/" + sequenceFile + ".txt";
 
-    ff = ifstream{full_sequence_file};
+    ff = ifstream{fullSequenceFile};
     int i = 0, c = 0, x = 0;
-    while ((ff >> x) && c < max_width) {
+    while ((ff >> x) && c < maxWidth) {
         if (i) {
             S.push_back(x);
             ++c;
@@ -37,10 +37,10 @@ int main() {
     // uncomment line below to see text display of wall
     //W.printWall();
 
-    string out_file = "imagesNumberWalls/" + sequence_file
+    string outFile = "imagesNumberWalls/" + sequenceFile
                       + "_(w=" + to_string(c) + ")_(m="
                       + to_string(modulo) + ").png";
-    W.savePNG(out_file , pixel_size, modulo);
+    W.savePNG(outFile , pixelSize);
     //cout << "\n\n\n" << *max_element(W.wall.begin(), W.wall.end());
     cout << "valid=" << W.validWall() << endl;
 

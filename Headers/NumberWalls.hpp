@@ -1,6 +1,6 @@
 #pragma once
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
+//#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 #include "tools.hpp"
 
@@ -210,7 +210,7 @@ struct NumberWall {
     }
     
     // save image of number wall
-    virtual void savePNG(string filename, int pixelSize, int mod) {
+    virtual void savePNG(string filename, int pixelSize) {
         long long imgW = width * pixelSize;
         long long imgH = height * pixelSize;
 
@@ -225,9 +225,7 @@ struct NumberWall {
                 if (!valid(row, col)) {
                     r = g = b = 255;
                 } else {
-                    int v = get(row, col);
-
-                    int x = ((v % mod) + mod) % mod;
+                    int x = get(row, col);
 
                     if (x == 0) {
                         r = 255;
@@ -237,7 +235,7 @@ struct NumberWall {
                     else {
                         r = 0;
                         g = 0;
-                        b = 50 + (205 * x) / (mod - 1);
+                        b = 50 + (205 * x) / (modulo - 1);
                     }
                 }
 
@@ -269,7 +267,7 @@ struct NumberWall {
     }
     
     // save image of number wall
-    virtual void savePNGSquare(string filename, int pixelSize, int mod) {
+    virtual void savePNGSquare(string filename, int pixelSize) {
         bool pixelSizeIsOne = (pixelSize == 1);
         int colStart = 0;
         while (get(0, colStart) == 0) {
@@ -292,9 +290,7 @@ struct NumberWall {
                 if (!valid(row, col)) {
                     r = g = b = 255;
                 } else {
-                    int v = get(row, col);
-
-                    int x = ((v % mod) + mod) % mod;
+                    int x = get(row, col);
 
                     if (x == 0) {
                         r = 255;
@@ -304,7 +300,7 @@ struct NumberWall {
                     else {
                         r = 0;
                         g = 0;
-                        b = 50 + (205 * x) / (mod - 1);
+                        b = 50 + (205 * x) / (modulo - 1);
                     }
                 }
 
@@ -452,7 +448,7 @@ struct NumberWallDet {
     }
     
     // save image of number wall
-    void savePNG(string filename, int pixelSize, int mod) {
+    void savePNG(string filename, int pixelSize) {
         int imgW = width * pixelSize;
         int imgH = height * pixelSize;
 
@@ -467,9 +463,7 @@ struct NumberWallDet {
                 if (!valid(row, col)) {
                     r = g = b = 255;
                 } else {
-                    int v = get(row, col);
-
-                    int x = ((v % mod) + mod) % mod;
+                    int x = get(row, col);
 
                     if (x == 0) {
                         r = 255;
@@ -478,7 +472,7 @@ struct NumberWallDet {
                     else {
                         r = 0;
                         g = 0;
-                        b = 50 + (205 * x) / (mod - 1);
+                        b = 50 + (205 * x) / (modulo - 1);
                     }
                 }
 
@@ -941,7 +935,7 @@ struct NumberWallSquare {
             for (int i = 0; i < row; ++i) {
                 cout << "   ";
             }
-            for (int col = row; col < width - row ; ++col) {
+            for (int col = 0; col < width; ++col) {
                 int curr = get(row, col);
                 if (curr >= 0) cout << " ";
                 cout << curr << " ";
@@ -951,7 +945,7 @@ struct NumberWallSquare {
     }
     
     // save image of number wall
-    virtual void savePNG(string filename, int pixelSize, int mod) {
+    virtual void savePNG(string filename, int pixelSize) {
         long long imgW = width * pixelSize;
         long long imgH = height * pixelSize;
 
@@ -966,9 +960,7 @@ struct NumberWallSquare {
                 if (!valid(row, col)) {
                     r = g = b = 255;
                 } else {
-                    int v = get(row, col);
-
-                    int x = ((v % mod) + mod) % mod;
+                    int x = get(row, col);
 
                     if (x == 0) {
                         r = 255;
@@ -978,7 +970,7 @@ struct NumberWallSquare {
                     else {
                         r = 0;
                         g = 0;
-                        b = 50 + (205 * x) / (mod - 1);
+                        b = 50 + (205 * x) / (modulo - 1);
                     }
                 }
 
