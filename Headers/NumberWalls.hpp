@@ -1,6 +1,5 @@
 #pragma once
 
-//#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 #include "tools.hpp"
 
@@ -515,7 +514,7 @@ struct NumberWallDet {
         return true;
     }
 
-    long long get_element(vector<int> S, int row, int col) {
+    long long get_element(vector<int>& S, int row, int col) {
         vector<vector<long long>> A(row + 1, vector<long long>(row + 1));
         for (int r = 0; r < row + 1; r++) {
             for (int c = 0; c < row + 1; c++) {

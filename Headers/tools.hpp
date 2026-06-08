@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <map>
 #include <unordered_map>
+#include <chrono>
 
 using namespace std;
 
@@ -18,7 +19,6 @@ bool isPrime(int n) {
     if (n == 2) return true;
     if (n % 2 == 0) return false;
 
-    // Check for factors from 3 up to sqrt(n)
     int r = sqrt(n);
     for (int i = 3; i <= r; i += 2) {
         if (n % i == 0) {
@@ -202,4 +202,35 @@ map<T, U> toMap(const unordered_map<T, U>& UM) {
         M[key] = value;
     }
     return M;
+}
+
+bool compareZeros(vector<vector<int>>& A, vector<vector<int>>& B) {
+    if (A.size() != B.size())
+        return false;
+
+    for (int i = 0; i < A.size(); ++i) {
+        if (B[i].size() != B[i].size()) return false;
+
+        for (int j = 0; j < A[i].size(); ++j) {
+            if ((A[i][j] == 0) != (B[i][j] == 0)) return false;
+        }
+    }
+    return true;
+}
+
+using Clock = chrono::steady_clock;
+class StopWatch {
+    Clock::time_point last;
+public:
+    StopWatch(): last{Clock::now()} {}
+    void printAndReset(ostream& out = cout) {
+        auto now = Clock::now();
+        out << chrono::duration<double>(now - last).count() << "s";
+        last = now;
+    }
+};
+
+ostream& operator<<(ostream& out, StopWatch& SW) {
+    SW.printAndReset(out);
+    return out;
 }

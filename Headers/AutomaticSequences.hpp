@@ -1,6 +1,5 @@
 #pragma once
 
-//#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
 #include <vector>
@@ -185,10 +184,13 @@ struct Automatic2D {
     void savePNG(string filename, int pixelSize) {
         // get maxNum
         int maxNum = 0;
-        for (auto& [symbol, code] : coding) {
-            for (auto& row : code) {
-                for (auto element : row) {
-                    if (element > maxNum) maxNum = element;
+        if (coding.empty()) maxNum = 1; // default coding
+        else {
+            for (auto& [symbol, code] : coding) {
+                for (auto& row : code) {
+                    for (auto element : row) {
+                        if (element > maxNum) maxNum = element;
+                    }
                 }
             }
         }
