@@ -10,7 +10,9 @@
 #include <string>
 #include <cstdint>
 #include <map>
+#include <unordered_map>
 #include <cmath>
+#include <utility>
 
 using namespace std;
 
@@ -272,6 +274,9 @@ struct Morphism {
         findMorphism(grid);
     }
 
+    // skeleton8 ctor used for derived SquareWallMorphism
+    Morphism(int morphismSize): morphismSize{morphismSize} {}
+
     void findMorphism(ChunkGrid& grid){
         int sideLength = grid.size() / morphismSize;
 
@@ -442,7 +447,7 @@ struct Morphism {
                 symbol = rotate(symbol);
             }
         }
-        return "[Not Found]";
+        throw "Rule Not Found";
     }
 
     string getSuffix(const string& symbol) const {
@@ -457,7 +462,7 @@ struct Morphism {
 
     void printCanonicalMorphism(ostream& out = cout) {
         for (auto& [symbol, rule] : canonicalRules) {
-            out << symbol << ":" << endl;
+            out << symbol << endl;
             printGrid(rule, out);
         }
     }
@@ -798,5 +803,94 @@ struct Morphism {
             }
         }
         return true;
+    }
+};
+
+
+
+// ==============================================
+
+
+
+struct ZeroSquare {
+    int bottom;
+    int l;
+    int rA, rB, rC;
+    int A0, Al; // = B0, Cl, respectively
+    // don't need D0=C0 or Dl=Bl because they appear in bottom row
+    vector<int> Hk;
+    // builds Hk as we go down the wall so that
+    //   it is ready by the time we need it
+
+    // ctor
+    ZeroSquare(int topRow, int l) {
+        Hk.reserve(l);
+    }
+
+    void updateHk(int Bk, int Ck) {
+
+    }
+};
+
+// This is a hybrid of SquareNumberWall and Morphism that
+//   finds the morphism as it generates the wall, allowing
+//   it to only store two rows of the number wall (plus
+//   some data on zero regions) instead of the whole wall
+//   This takes the memory from O(n^2) to O(n)
+struct SquareWallMorphism: public Morphism {
+    // Morphism stuff (not already included in Morphism)
+    int chunkWidth;
+
+    // NumberWall stuff
+    vector<int> prev;
+    vector<int> prev2;
+    unordered_map<pair<int, int>, ZeroSquare, PairHash> zeros;
+    // zeros[i] = info about i-th zero square in row
+    int row = 0, col = 0;
+    int modulo;
+    int width;
+    vector<int> inverse;
+
+    // ctor
+    SquareWallMorphism(vector<int>& S, int modulo,
+            int morphismSize, int minUniqueIter):
+            Morphism{morphismSize}, modulo{modulo},
+            width{static_cast<int>(S.size())},
+            chunkWidth{static_cast<int>(pow(morphismSize, minUniqueIter))} {
+
+        // get inverses
+        for (int i = 0; i < modulo; ++i) {
+            inverse.push_back(modPow(i, modulo - 2, modulo));
+        }
+        
+        // construct prev = S % modulo
+        prev2.reserve(S.size());
+        for(int i = 0; i < width; ++i) {
+            prev2[i] = (modulo + (S[i] % modulo)) % modulo;
+        }
+
+        // construct prev from prev2
+        // (because we know there's a row of 1s above prev2)
+        prev.reserve(S.size());
+        prev[0] = prev2[0] * prev2[0] % modulo;
+        for (int i = 1; i < width - 1; ++i) {
+            prev[i] = (prev2[i] * prev2[i]
+                      - prev2[i - 1] * prev2[i + 1]) % modulo;
+        }
+        prev[width - 1] = prev2[width - 1] * prev2[width - 1] % modulo;
+
+        // loop through wall while constructing it to find the morphism
+        int numChunksWide = width / chunkWidth;
+        for (int i = 0; i < numChunksWide; ++i) {
+            createChunkRow(i);
+        }
+    }
+
+    void createChunkRow(int chunkRow) {
+
+    }
+
+    ZeroSquare& findZeroSquare(ZeroSquare& z) {
+        return z;
     }
 };

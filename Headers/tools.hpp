@@ -204,7 +204,9 @@ map<T, U> toMap(const unordered_map<T, U>& UM) {
     return M;
 }
 
-bool compareZeros(vector<vector<int>>& A, vector<vector<int>>& B) {
+// requires some numerical type
+template<typename T, typename U>
+bool compareZeros(const vector<vector<T>>& A, const vector<vector<U>>& B) {
     if (A.size() != B.size())
         return false;
 
@@ -234,3 +236,9 @@ ostream& operator<<(ostream& out, StopWatch& SW) {
     SW.printAndReset(out);
     return out;
 }
+
+struct PairHash {
+    size_t operator()(const pair<int,int>& p) const {
+        return hash<int>{}(p.first) ^ (hash<int>{}(p.second) << 1);
+    }
+};

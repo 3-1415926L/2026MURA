@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 #include <algorithm>
+#include <stdexcept>
 
 using namespace std;
 
@@ -772,7 +773,8 @@ struct NumberWallNoMod {
 // assumes zeros on either side of square
 // (useful for (p,k)-Cantor walls)
 struct NumberWallSquare {
-    vector<vector<int>> wall; // does not include row -1 or -2
+    vector<vector<uint8_t>> wall; // does not include row -1 or -2
+    // uses uint8_t, so must make sure modulo < 256
     int width;
     int height;
     int modulo;
@@ -781,8 +783,11 @@ struct NumberWallSquare {
     // ctor
     NumberWallSquare(vector<int>& S, int modulo):
             width{static_cast<int>(S.size())}, height{static_cast<int>(S.size())},
-            modulo{modulo}, wall{S.size(), vector<int>(S.size())} {
-        int total = 0;
+            modulo{modulo}, wall{S.size(), vector<uint8_t>(S.size())} {
+        if (modulo >= 256) {
+            throw invalid_argument("modulo must be < 256");
+        }
+        
         for (int i = 0; i < modulo; ++i) {
             inverse.push_back(modPow(i, modulo - 2, modulo));
         }
