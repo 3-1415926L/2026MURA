@@ -31,9 +31,11 @@ struct NumberWall {
     vector<int> inverse;
 
     // ctor
-    NumberWall(vector<int>& S, int w, int modulo): width{w}, height{(w + 1) / 2}, modulo{modulo} {
+    NumberWall(vector<int>& S, int modulo): modulo{modulo},
+            width{static_cast<int>(S.size())} {
+        height = (width + 1) / 2;
         int total = 0;
-        for (int n = w; n >= 1; n -= 2) {
+        for (int n = width; n >= 1; n -= 2) {
             offset.push_back(total);
             total += n;
         }
@@ -367,9 +369,11 @@ struct NumberWallDet {
     vector<int> inverse; // used for precomputing modular inverses
 
     // ctor
-    NumberWallDet(vector<int>& S, int w, int modulo): width{w}, height{(w + 1) / 2}, modulo{modulo} {
+    NumberWallDet(vector<int>& S, int modulo): modulo{modulo},
+            width{static_cast<int>(S.size())} {
+        height = (width + 1) / 2;
         int total = 0;
-        for (int n = w; n >= 1; n -= 2) {
+        for (int n = width; n >= 1; n -= 2) {
             offset.push_back(total);
             total += n;
         }
@@ -540,9 +544,11 @@ struct NumberWallNoMod {
     int height; // does not include row -1 or -2
 
     // ctor
-    NumberWallNoMod(vector<int>& S, int w, bool print): width{w}, height{(w + 1) / 2} {
+    NumberWallNoMod(vector<int>& S, bool print = 0):
+            width{static_cast<int>(S.size())} {
+        height = (width + 1) / 2;
         int total = 0;
-        for (int n = w; n >= 1; n -= 2) {
+        for (int n = width; n >= 1; n -= 2) {
             offset.push_back(total);
             total += n;
         }
@@ -694,9 +700,13 @@ struct NumberWallNoMod {
     }
     
     // save image of number wall
-    void savePNG(string filename, int pixelSize, int mod) {
+    void savePNG(string filename, int pixelSize, int mod = 0) {
         int imgW = width * pixelSize;
         int imgH = height * pixelSize;
+
+        if (mod == 0) {
+            mod = *max_element(wall.begin(), wall.end());
+        }
 
         vector<unsigned char> img(imgW * imgH * 3);
 
@@ -715,7 +725,9 @@ struct NumberWallNoMod {
                     int x = ((v % mod) + mod) % mod;
 
                     if (x == 0) {
-                        r = g = b = 0;
+                        r = 255;
+                        g = 102;
+                        b = 0;
                     }
                     else {
                         r = 0;
@@ -750,12 +762,12 @@ struct NumberWallNoMod {
         );
     }
 
-    bool validWall(int modulo) {
+    bool validWall() {
         for (int row = 1; row < height - 1; ++row) {
             for (int col = row + 1; col < width - row - 1; ++col) {
-                if ((get(row - 1, col) * get(row + 1, col)
+                if (get(row - 1, col) * get(row + 1, col)
                     + get(row, col - 1) * get(row, col + 1)
-                    - get(row, col) * get(row, col)) % modulo) {
+                    - get(row, col) * get(row, col)) {
                         return false;
                 }
             }
@@ -782,8 +794,9 @@ struct NumberWallSquare {
 
     // ctor
     NumberWallSquare(vector<int>& S, int modulo):
-            width{static_cast<int>(S.size())}, height{static_cast<int>(S.size())},
-            modulo{modulo}, wall{S.size(), vector<uint8_t>(S.size())} {
+            width{static_cast<int>(S.size())}, modulo{modulo},
+            wall{S.size(), vector<uint8_t>(S.size())} {
+        height = width;
         if (modulo >= 256) {
             throw invalid_argument("modulo must be < 256");
         }

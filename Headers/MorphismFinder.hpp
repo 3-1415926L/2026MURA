@@ -818,13 +818,14 @@ struct ZeroSquare {
     int rA, rB, rC;
     int A0, Al; // = B0, Cl, respectively
     // don't need D0=C0 or Dl=Bl because they appear in bottom row
-    vector<int> Hk;
+    vector<int> Ek, Fk, Gk;
     // builds Hk as we go down the wall so that
     //   it is ready by the time we need it
 
     // ctor
     ZeroSquare(int topRow, int l) {
-        Hk.reserve(l);
+        Ek.reserve(l); // wait! won't know l at ctor time!
+        /////////////////////////////
     }
 
     void updateHk(int Bk, int Ck) {
@@ -842,55 +843,155 @@ struct SquareWallMorphism: public Morphism {
     int chunkWidth;
 
     // NumberWall stuff
-    vector<int> prev;
-    vector<int> prev2;
-    unordered_map<pair<int, int>, ZeroSquare, PairHash> zeros;
-    // zeros[i] = info about i-th zero square in row
-    int row = 0, col = 0;
     int modulo;
     int width;
-    vector<int> inverse;
 
-    // ctor
+    // SquareWallMorphism ctor
     SquareWallMorphism(vector<int>& S, int modulo,
             int morphismSize, int minUniqueIter):
             Morphism{morphismSize}, modulo{modulo},
             width{static_cast<int>(S.size())},
             chunkWidth{static_cast<int>(pow(morphismSize, minUniqueIter))} {
-
-        // get inverses
-        for (int i = 0; i < modulo; ++i) {
-            inverse.push_back(modPow(i, modulo - 2, modulo));
-        }
         
-        // construct prev = S % modulo
-        prev2.reserve(S.size());
-        for(int i = 0; i < width; ++i) {
-            prev2[i] = (modulo + (S[i] % modulo)) % modulo;
-        }
-
-        // construct prev from prev2
-        // (because we know there's a row of 1s above prev2)
-        prev.reserve(S.size());
-        prev[0] = prev2[0] * prev2[0] % modulo;
-        for (int i = 1; i < width - 1; ++i) {
-            prev[i] = (prev2[i] * prev2[i]
-                      - prev2[i - 1] * prev2[i + 1]) % modulo;
-        }
-        prev[width - 1] = prev2[width - 1] * prev2[width - 1] % modulo;
-
-        // loop through wall while constructing it to find the morphism
-        int numChunksWide = width / chunkWidth;
-        for (int i = 0; i < numChunksWide; ++i) {
-            createChunkRow(i);
-        }
+        Builder{*this, S, minUniqueIter};
     }
 
-    void createChunkRow(int chunkRow) {
+    // helper struct to keep track of data needed to build the SquareWallMorphism
+    struct Builder {
+        SquareWallMorphism& W;
 
-    }
+        vector<int> prev;
+        vector<int> prev2;
+        unordered_map<int, ZeroSquare> zeros;
+        // zeros[i] = info about zero square with
+        //     leftmost col (outside window) = i
+        vector<int> chunk;
+        vector<int> nextChunk;
 
-    ZeroSquare& findZeroSquare(ZeroSquare& z) {
-        return z;
-    }
+        int modulo;
+        int width;
+        int chunkWidth;
+        // these are here simply so I can write modulo instead of W.modulo
+        // This makes the code cleaner and is, in my opinion, worth three ints of memory
+
+        vector<int> inverse;
+        // a list of inverses of numbers mod modulo
+        // (can be used in place of an inverse function)
+
+        Builder(SquareWallMorphism& W, vector<int>& S, int minUniqueIter):
+                W{W}, modulo{W.modulo}, width{W.width},
+                chunkWidth{static_cast<int>(pow(W.morphismSize, minUniqueIter))} {
+
+            // get inverses
+            for (int i = 0; i < W.modulo; ++i) {
+                inverse.push_back(modPow(i, W.modulo - 2, W.modulo));
+            }
+
+            // reserve prev vectors and chunks
+            chunk.reserve(chunkWidth * chunkWidth);
+            nextChunk.reserve(chunkWidth * chunkWidth);
+            prev2.reserve(S.size());
+            prev.reserve(S.size());
+
+            // loop through first row
+            /////////////////////////////
+
+
+            // loop through wall while constructing it to find the morphism
+            int numChunksWide = width / chunkWidth;
+            for (int chunkRow = 0; chunkRow < numChunksWide; ++chunkRow) {
+                createChunkRow(numChunksWide, chunkRow);
+            }
+        }
+
+        void createChunkRow(int numChunksWide, int chunkRow) {
+            createFirstChunk(chunkRow);
+            for (int chunkCol = 1; chunkCol < numChunksWide - 1; ++chunkCol) {
+                createChunk(chunkRow, chunkCol);
+
+                // check if chunk is new (add it if so)
+                // actually, only need to do this up to col,row / morphismSize
+                //     because if we find a new symbol here, then we know
+                //     the morphism finder won't succeed
+                // also must update lastUnitPosition
+                //     (only need to store one lastUnitPosition because the order
+                //     the SuperChunks are found is the same order the regular Chunks
+                //     are found, just scaled up)
+
+                // check if (position // morphismSize) matches lastUnitPosition
+                //     (then, do position % morphismSize to find which part of the unit it is)
+                // if so, update the coresponding rule
+
+                //////////////////////
+            }
+            createLastChunk(chunkRow);
+        }
+
+        // This is the most important method.
+        //     It performs all the required number wall logic to get each new chunk.
+        //     It is important that this be as efficient as possible.
+        void createChunk(int chunkRow, int chunkCol) {
+            
+            chunk = move(nextChunk);
+
+            // make first two rows of nextChunk (and 2nd row, last element of chunk)
+
+            //   d
+            // a b c
+            //   x      (x = next one)
+            //
+            // Must check if a and/or c are zero, and if so,
+            //     (and b not 0) update their squares
+
+            // move down chunk/nextChunk in a paralellogram path creating each row
+            for (int row = 2; row < chunkWidth; ++row) {
+                
+            }
+
+            /////////////////////////////
+            updatePrev(chunkCol);
+        }
+
+        void createFirstChunk(int chunkRow) { // has zeros in left triangle
+            
+            /////////////////////////////
+            updatePrev(0);
+        }
+
+        void createLastChunk(int chunkRow) { // has zeros in right triangle
+            
+            ///////////////////////////////
+            // don't update prev
+        }
+
+        // copies last two rows of chunk into prev and prev2
+        void updatePrev(int chunkCol) {
+            auto chunkLastRow = chunk.begin() + chunkWidth * (chunkWidth - 1);
+            auto prev2Start = prev2.begin() + chunkCol * chunkWidth;
+            auto prevStart = prev.begin() + chunkCol * chunkWidth;
+
+            copy_n(chunkLastRow, chunkWidth, prev2Start);
+            copy_n(chunkLastRow - chunkWidth, chunkWidth, prevStart);
+        }
+    }; // Builder
 };
+
+
+
+
+
+
+/* // Row of Chunks by row of Chunks
+for (int row = 0; row < maxrow; ++row) {
+    prev2 = prev;
+    prev = next;
+    // first/last columns are beside zero squares,
+    //   so they are geometric sequences
+    next[0] = prev[0] * prev[0] * inverse[prev2[0]] % modulo;
+
+    // make middle columns
+    for (int col = 0; col < )
+    next[width - 1] = prev[width - 1] * prev[width - 1]
+                      * inverse[prev2[width - 1]] % modulo;
+}
+// */

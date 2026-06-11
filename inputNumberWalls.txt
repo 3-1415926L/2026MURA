@@ -1,15 +1,74 @@
-sequence_file:    thue_morse_ternary
-max_width:        5000
-pixel_size:       1
-modulo:           3
+Fill in the following information to generate a number wall
+It will appear as a.png in the 2026MURA directory
+(assuming generation is successful)
 
-change the above values
-Note:
+pixel_size:      1
+modulo:          2
+
+sequence_generation_option:    3
+
+======================================
+
+Option_1 - A sequence in the sequences folder
+
+sequence_name:     5_2_cantor
+max_width:         1000
+
+(see notes below for list of sequence files)
+
+======================================
+
+Option_2 - A sequence in a specified file
+
+sequence_name:     sequences/pagoda.txt
+max_width:         1000
+
+(must be in OEIS b-file format (see notes below))
+
+======================================
+
+Option_3 - From a given morphism
+
+start_symbol:            1
+number_of_iterations:    14
+
+morphism_(below):
+
+1
+1 0
+
+0
+1
+
+======================================
+
+Option_4 - From a custom sequence
+
+sequence_(below):
+
+3 1 4 1 5 9 2 6 5 3 5 8
+
+======================================
+
+Notes:
+
 - Do not add ".txt" to files
-- modulo must be a prime less than 1000
+- modulo 0 means no modulo (original wall will be displayed)
+- if nonzero, modulo must be a prime less than 1000
+- symbols in morphisms must be integers
+- an OEIS b-file is a file where where each line consists
+    of the index followed by the sequence value, for example,
+    1 2
+    2 3
+    3 5
+    4 7
+    ...
+    9998 104717
+    9999 104723
+    10000 104729
+    
 
-
-available files:
+available sequence files:
 
 thue_morse
 1_paperfolding
@@ -29,3 +88,4 @@ primes_mod_3
 pagoda
 thue_morse_alt
 thue_morse_ternary
+5_2_cantor
