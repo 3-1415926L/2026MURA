@@ -34,7 +34,7 @@ int main() {
             continue;
         }
         cout << " (prime)" << endl;
-        NumberWall W(S, max_width, p);
+        NumberWall W(S, p);
         vector<int> wall = W.wall;
         int len = wall.size();
 
