@@ -364,7 +364,7 @@ struct Morphism {
             }
         }
 
-        auto typeIt = findType(type, chunk);
+        auto typeIt = findType(type);
         if (typeIt != types.end()) { // return existing type
             int index = typeIt - types.begin();
             typeCounts[index]++;
@@ -377,7 +377,7 @@ struct Morphism {
         }
     }
 
-    vector<vector<uint8_t>>::iterator findType(vector<uint8_t>& type, Chunk& chunk) {
+    vector<vector<uint8_t>>::iterator findType(vector<uint8_t>& type) {
         for (auto it = types.begin(); it != types.end(); ++it) {
             if (*it == type) return it;
             type = rotate(type);
@@ -810,7 +810,7 @@ struct Morphism {
 
 // ==============================================
 
-
+/*
 
 struct ZeroSquare {
     int bottom;
@@ -976,7 +976,7 @@ struct SquareWallMorphism: public Morphism {
     }; // Builder
 };
 
-
+*/
 
 
 

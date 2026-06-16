@@ -124,7 +124,7 @@ void printArr(const vector<int>& S, ostream& out = cout) {
     } else {
         out << S[0];
     }
-    for (int i = 1; i < S.size(); i++) {
+    for (size_t i = 1; i < S.size(); i++) {
         out << "," << S[i];
     }
     out << endl;

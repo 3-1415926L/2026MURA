@@ -36,7 +36,6 @@ int main() {
         cout << " (prime)" << endl;
         NumberWall W(S, p);
         vector<int> wall = W.wall;
-        int len = wall.size();
 
         for (int row = 0; row < W.height; ++row) {
             for (int col = row; col < W.width - row - 1; ++col) {
