@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++20 -IHeaders
+CXXFLAGS = -std=c++20 -O3 -IHeaders
 
 PROGRAM_SOURCES := $(wildcard Programs/*.cc)
 COMMON_SOURCES := stb_image/stb_image_impl.cc
