@@ -5,14 +5,37 @@ It will appear as a.png in the 2026MURA directory
 pixel_size:      1
 modulo:          2
 
-sequence_generation_option:    3
+======================================
+
+number_wall_type:     1
+(see below)
+
+square_wall:          1
+(boolean 1 or 0, see notes)
+
+======================================
+
+Number Wall types
+
+1 - uses frame constraint equations (default)
+
+2 - uses determinants of sequence Toeplitz matrices
+
+3 - uses permanants of sequence Toeplitz matrices
+
+4 - uses 3D equivalent of determinant of 3D Toeplitz tensor
+
+======================================
+
+sequence_generation_option:    1
+(See below)
 
 ======================================
 
 Option_1 - A sequence in the sequences folder
 
-sequence_name:     5_2_cantor
-max_width:         1000
+sequence_name:     thue_morse
+max_width:         1023
 
 (see notes below for list of sequence files)
 
@@ -27,10 +50,10 @@ max_width:         1000
 
 ======================================
 
-Option_3 - From a given morphism
+Option_3 - A sequence generated from a given morphism
 
 start_symbol:            1
-number_of_iterations:    14
+number_of_iterations:    7
 
 morphism_(below):
 
@@ -42,7 +65,7 @@ morphism_(below):
 
 ======================================
 
-Option_4 - From a custom sequence
+Option_4 - A custom sequence entered here
 
 sequence_(below):
 
@@ -52,10 +75,22 @@ sequence_(below):
 
 Notes:
 
-- Do not add ".txt" to files
-- modulo 0 means no modulo (original wall will be displayed)
+- modulo 0 means no modulo (original wall will be displayed),
+    currently, only Number Wall type 1 supports this feature
+
 - if nonzero, modulo must be a prime less than 1000
+
+- if square_wall is set to 1, it will assume 0s to the
+    left and right of the sequence to make a square wall
+    instead of the usual triangle
+
+- do not add ".txt" to files from the sequences folder
+
+- a suffix of "_(below)" means the values should be entered
+    in the line(s) below the input name
+
 - symbols in morphisms must be integers
+
 - an OEIS b-file is a file where where each line consists
     of the index followed by the sequence value, for example,
     1 2
@@ -68,7 +103,7 @@ Notes:
     10000 104729
     
 
-available sequence files:
+available files in sequences folder:
 
 thue_morse
 1_paperfolding

@@ -44,10 +44,10 @@ void applyMorphism(vector<int>& S, unordered_map<int, vector<int>>& morphism) {
 
 template<typename WallType>
 void doNumberWallStuff(WallType& W, int pixelSize) {
-    if (!(W.validWall())) {
-        cerr << "Number wall was constructed invalidly" << endl;
-        exit(1);
-    }
+    //if (!(W.validWall())) {
+    //    cerr << "Number wall was constructed invalidly" << endl;
+    //    exit(1);
+    //}
     string outFile = "a.png";
     //W.printWall();
     W.savePNG(outFile , pixelSize);
@@ -62,9 +62,12 @@ int main() {
         cerr << "Could not find inputNumberWalls.txt" << endl;
         exit(1);
     }
-    int pixelSize, modulo, genOption;
+    int pixelSize, modulo, genOption, NWtype;
+    bool usingSquareWall;
     getInput(ff, "pixel_size", pixelSize);
     getInput(ff, "modulo", modulo);
+    getInput(ff, "number_wall_type", NWtype);
+    getInput(ff, "square_wall", usingSquareWall);
     getInput(ff, "sequence_generation_option", genOption);
 
     if (genOption == 1) {
@@ -79,7 +82,7 @@ int main() {
         
         ifstream ffSeq{sequenceFile};
         int element;
-        int count;
+        int count = 0;
         while ((ffSeq >> testInput) && count < maxWidth) {
             ffSeq >> element;
             S.push_back(element);
@@ -154,17 +157,73 @@ int main() {
         }
 
     } else {
-        cerr << "Option " << genOption << " does not exist";
+        cerr << "Sequence generation option " << genOption
+             << " does not exist" << endl;
         exit(1);
     }
+
+    // zeros at the start/end of the sequence would be irrelevant in this case
+    if (usingSquareWall) {
+        int firstNonZero = 0;
+        while (firstNonZero < S.size() && S[firstNonZero] == 0) {
+            firstNonZero++;
+        }
+        int lastNonZero = S.size();
+        while (lastNonZero > firstNonZero && S[lastNonZero - 1] == 0)
+            lastNonZero--;
+
+        S = vector<int>(S.begin() + firstNonZero, S.begin() + lastNonZero);
+    }
     
+    // make wall from sequence
     if (modulo == 0) {
+        if (NWtype != 1 || usingSquareWall) {
+            cerr << "This Number Wall type currently does not support modulus 0" << endl;
+            exit(1);
+        }
         NumberWallNoMod W{S};
         doNumberWallStuff(W, pixelSize);
-    } else {
-        NumberWall W{S, modulo};
-        doNumberWallStuff(W, pixelSize);
     }
+    else if (usingSquareWall) {
+        if (NWtype == 1) {
+            NumberWall<FlatSquareLayout> W{S, modulo};
+            doNumberWallStuff(W, pixelSize);
+        } else if (NWtype == 2) {
+            NumberWallDet<FlatSquareLayout> W{S, modulo};
+            doNumberWallStuff(W, pixelSize);
+        } else if (NWtype == 3) {
+            NumberWallPermRyser<FlatSquareLayout> W{S, modulo};
+            doNumberWallStuff(W, pixelSize);
+        } else if (NWtype == 4) {
+            NumberWallDet3D<FlatSquareLayout> W{S, modulo};
+            doNumberWallStuff(W, pixelSize);
+        } else {
+            cerr << "Number Wall type " << NWtype
+                << " does not exist" << endl;
+            exit(1);
+        }
+    } // if usingSquareWall
+
+    else { // if not usingSquareWall
+        if (NWtype == 1) {
+            NumberWall W{S, modulo};
+            doNumberWallStuff(W, pixelSize);
+        } else if (NWtype == 2) {
+            NumberWallDet W{S, modulo};
+            doNumberWallStuff(W, pixelSize);
+        } else if (NWtype == 3) {
+            NumberWallPermRyser W{S, modulo};
+            doNumberWallStuff(W, pixelSize);
+        } else if (NWtype == 4) {
+            NumberWallDet3D W{S, modulo};
+            doNumberWallStuff(W, pixelSize);
+        } else {
+            cerr << "Number Wall type " << NWtype
+                << " does not exist" << endl;
+            exit(1);
+        }
+    } // if not usingSquareWall
+    
 
     return 0;
 }

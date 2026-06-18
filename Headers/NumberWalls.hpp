@@ -28,13 +28,15 @@ struct Empty {};
 
 
 
-// abstract base class
+// abstract base class for every type of Numberwall
 template<typename Layout>
 struct NumberWallBase {
     int width;
     int height; // does not include row -1 or -2
     int modulo;
     vector<int> inverse;
+
+    vector<int> S; // stores the sequence
     
     // uses the specified data type for wall
     using wallType =
@@ -56,7 +58,7 @@ struct NumberWallBase {
     > offset;
 
     // ctor
-    NumberWallBase(vector<int>& S, int modulo):
+    NumberWallBase(vector<int>& S, int modulo): S{S},
             modulo{modulo}, width{static_cast<int>(S.size())} {
 
         if constexpr (is_same_v<Layout, FlatLayout> ||
@@ -103,7 +105,7 @@ struct NumberWallBase {
     }
 
     // will be overrided in subclasses
-    virtual void makeWall(vector<int>& S) = 0;
+    virtual void makeWall() = 0;
 
     int get(int row, int col) const {
         if (row == -1) return 1;
@@ -192,15 +194,30 @@ struct NumberWallBase {
             cout << "\n";
         }
     }
+
+    int getMaxNum() {
+        if (modulo > 0) {
+            return modulo - 1;
+        } else {
+            if constexpr (is_same_v<Layout, FlatLayout> ||
+                          is_same_v<Layout, FlatSquareLayout>) {
+                return *max_element(wall.begin(), wall.end());
+            }
+            else {
+                int maxNum = 0;
+                for (const auto& row : wall) {
+                    maxNum = max(maxNum, *max_element(row.begin(), row.end()));
+                }
+                return maxNum;
+            }
+        }
+    }
     
     // save image of number wall
-    void savePNG(string filename, int pixelSize, int mod = 0) {
+    void savePNG(string& filename, int pixelSize) {
         int imgW = width * pixelSize;
         int imgH = height * pixelSize;
-
-        if (mod == 0) {
-            mod = *max_element(wall.begin(), wall.end());
-        }
+        int maxNum = getMaxNum();
 
         vector<unsigned char> img(imgW * imgH * 3);
 
@@ -214,9 +231,7 @@ struct NumberWallBase {
                     r = g = b = 255;
                 }
                 else {
-                    long long v = get(row, col);
-
-                    int x = ((v % mod) + mod) % mod;
+                    int x = get(row, col);
 
                     if (x == 0) {
                         r = 255;
@@ -226,7 +241,7 @@ struct NumberWallBase {
                     else {
                         r = 0;
                         g = 0;
-                        b = 50 + (205 * x) / (mod - 1);
+                        b = 50 + (205 * x) / maxNum;
                     }
                 }
 
@@ -278,14 +293,176 @@ struct NumberWallBase {
 
 
 
+// Abstract base class for Numberwalls that generate
+//   each of their elements independently
+template<auto getElement, typename Layout = FlatLayout>
+struct NumberWallByElement: public NumberWallBase<Layout> {
+
+    // ctor
+    NumberWallByElement(vector<int>& S, int modulo):
+            NumberWallBase<Layout>{S, modulo} {
+        makeWall();
+    }
+
+    virtual void makeWall() override {
+        int row = 0;
+        int col, maxCol;
+        while (row < this->height) {
+
+            // get start col and maxCol
+            if constexpr (is_same_v<Layout, FlatLayout> ||
+                        is_same_v<Layout, NestedLayout>) {
+                col = row;
+                maxCol = this->width - row;
+            }
+            else {
+                col = 0;
+                maxCol = this->width;
+            }
+
+            // main loop
+            while (col < maxCol) {
+                this->set(row, col, getElement(*this, row, col));
+                ++col;
+            }
+            ++row;
+        }
+    }
+};
+
+
+
+// ====================================================
+
+
+
+// NumberWallDet
+constexpr auto getElementDet = []<typename NumberWallType>
+    (NumberWallType& W, int row, int col) {
+
+    vector<vector<long long>> A(row + 1, vector<long long>(row + 1));
+    int len = W.S.size();
+
+    for (int r = 0; r < row + 1; r++) {
+        for (int c = 0; c < row + 1; c++) {
+            int idx = col + (c - r);
+
+            if (idx < 0 || idx >= len) {
+                A[r][c] = 0;
+            } else {
+                A[r][c] = W.S[idx];
+            }
+        }
+    }
+
+    return detMod(A, W.modulo);
+};
+
 template<typename Layout = FlatLayout>
-struct NumberWall_test: public NumberWallBase<Layout> {
+using NumberWallDet = NumberWallByElement<getElementDet, Layout>;
+
+
+
+// NumberWallPerm
+constexpr auto getElementPerm = []<typename NumberWallType>
+    (NumberWallType& W, int row, int col) {
+
+    vector<vector<long long>> A(row + 1, vector<long long>(row + 1));
+    int len = W.S.size();
+
+    for (int r = 0; r < row + 1; r++) {
+        for (int c = 0; c < row + 1; c++) {
+            int idx = col + (c - r);
+
+            if (idx < 0 || idx >= len) {
+                A[r][c] = 0;
+            } else {
+                A[r][c] = W.S[idx];
+            }
+        }
+    }
+
+    return permMod(A, W.modulo);
+};
+
+template<typename Layout = FlatLayout>
+using NumberWallPerm = NumberWallByElement<getElementPerm, Layout>;
+
+
+
+// NumberWallPermRyser
+constexpr auto getElementPermRyser = []<typename NumberWallType>
+    (NumberWallType& W, int row, int col) {
+
+    vector<vector<long long>> A(row + 1, vector<long long>(row + 1));
+    int len = W.S.size();
+
+    for (int r = 0; r < row + 1; r++) {
+        for (int c = 0; c < row + 1; c++) {
+            int idx = col + (c - r);
+            
+            if (idx < 0 || idx >= len) {
+                A[r][c] = 0;
+            } else {
+                A[r][c] = W.S[idx];
+            }
+        }
+    }
+
+    return permModRyser(A, W.modulo);
+};
+
+template<typename Layout = FlatLayout>
+using NumberWallPermRyser = NumberWallByElement<getElementPermRyser, Layout>;
+
+
+
+// NumberWallDet3D
+constexpr auto getElementDet3D = []<typename NumberWallType>
+    (NumberWallType& W, int row, int col) {
+
+    vector<vector<vector<long long>>> A(row + 1,
+        vector<vector<long long>>(row + 1,
+            vector<long long>(row + 1)
+        )
+    );
+    int len = W.S.size();
+
+    for (int x = 0; x <= row; x++) {
+        for (int y = 0; y <= row; y++) {
+            for (int z = 0; z <= row; z++) {
+                int idx = col + (y - x) + (z - x);
+            
+                if (idx < 0 || idx >= len) {
+                    A[x][y][z] = 0;
+                } else {
+                    A[x][y][z] = W.S[idx];
+                }
+            }
+        }
+    }
+
+    return det3DMod(A, W.modulo);
+};
+
+template<typename Layout = FlatLayout>
+using NumberWallDet3D = NumberWallByElement<getElementDet3D, Layout>;
+
+
+
+// ====================================================
+
+
+
+template<typename Layout = FlatLayout>
+struct NumberWall: public NumberWallBase<Layout> {
 
     // these are here so I don't have to preface each method/field from  with this->
     using NumberWallBase<Layout>::width;
     using NumberWallBase<Layout>::height;
     using NumberWallBase<Layout>::modulo;
     using NumberWallBase<Layout>::inverse;
+    using NumberWallBase<Layout>::S;
 
     using NumberWallBase<Layout>::get;
     using NumberWallBase<Layout>::set;
@@ -294,12 +471,12 @@ struct NumberWall_test: public NumberWallBase<Layout> {
 
 
     // ctor
-    NumberWall_test(vector<int>& S, int modulo):
+    NumberWall(vector<int>& S, int modulo):
             NumberWallBase<Layout>{S, modulo} {
-        makeWall(S);
+        makeWall();
     }
 
-    virtual void makeWall(vector<int>& S) override {
+    virtual void makeWall() override {
         // zero/one rows implicitly there
         // create sequence row
         for(int i = 0; i < width; ++i) {
@@ -352,13 +529,17 @@ struct NumberWall_test: public NumberWallBase<Layout> {
                 right++;
 
                 // if 0 square extends to edge, W[row,col] must be 0
-                if (!(validPos(top,left) && validPos(top,right))) {
-                    setRange(row, col, min(right, maxCol), 0);
-                    col = right;
-                    continue;
+                //   (only need to check the non-square cases, though)
+                if constexpr (is_same_v<Layout, FlatLayout> ||
+                            is_same_v<Layout, NestedLayout>) {
+                    if (!(validPos(top,left) && validPos(top,right))) {
+                        setRange(row, col, min(right, maxCol), 0);
+                        col = right;
+                        continue;
+                    }
                 }
 
-                // same here
+                // if 0 square is wider than it is tall, W[row,col] must be 0
                 if (right - left > row - top) {
                     setRange(row, col, min(right, maxCol), 0);
                     col = right;
@@ -439,7 +620,7 @@ struct NumberWall_test: public NumberWallBase<Layout> {
 // ====================================================
 
 
-
+/*
 struct NumberWall {
     vector<int> wall; // does not include row -1 or -2
     vector<int> offset;
@@ -948,10 +1129,10 @@ struct NumberWallDet {
                 A[r][c] = S[idx];
             }
         }
-        return det_mod(A, modulo);
+        return detMod(A, modulo);
     }
 }; // NumberWallDet
-
+*/
 
 
 // ===============================================================

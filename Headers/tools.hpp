@@ -55,7 +55,7 @@ long long modinv(long long a, long long p) {
 }
 
 // computes the determinant of A, mod p = prime
-long long det_mod(vector<vector<long long>> A, long long p) {
+long long detMod(vector<vector<long long>> A, long long p) {
     int n = A.size();
     long long det = 1;
     int sign = 1;
@@ -92,6 +92,130 @@ long long det_mod(vector<vector<long long>> A, long long p) {
     return det;
 }
 
+long long permMod(vector<vector<long long>> A, long long p) {
+    int n = (int)A.size();
+    long long ans = 0;
+
+    vector<int> perm(n);
+    for (int i = 0; i < n; i++)
+        perm[i] = i;
+
+    while (true) {
+        long long term = 1;
+        for (int i = 0; i < n; i++) {
+            term = term * A[i][perm[i]] % p;
+        }
+
+        ans += term;
+        ans %= p;
+
+        if (!next_permutation(perm.begin(), perm.end())) break;
+    }
+
+    return ans;
+}
+
+// same as permMod, but using Ryser's formula
+long long permModRyser(vector<vector<long long>> A, long long p) {
+    int n = (int)A.size();
+
+    long long N = 1LL << n;
+
+    vector<long long> rowSum(n, 0);
+
+    auto addmod = [&](long long a, long long b) {
+        a += b;
+        a %= p;
+        if (a < 0) a += p;
+        return a;
+    };
+
+    long long ans = 0;
+    long long prevGray = 0;
+
+    for (long long k = 1; k < N; ++k) {
+        long long gray = k ^ (k >> 1);
+        long long diff = gray ^ prevGray;
+
+        int bit = __builtin_ctzll(diff);
+        bool added = (gray >> bit) & 1;
+
+        for (int i = 0; i < n; ++i) {
+            if (added)
+                rowSum[i] = addmod(rowSum[i], A[i][bit]);
+            else
+                rowSum[i] = addmod(rowSum[i], -A[i][bit]);
+        }
+
+        long long prod = 1;
+        for (int i = 0; i < n; ++i)
+            prod = (long long)prod * rowSum[i] % p;
+
+        int parity = __builtin_popcountll(gray);
+
+        if (((n - parity) & 1) == 0)
+            ans = addmod(ans, prod);
+        else
+            ans = addmod(ans, -prod);
+
+        prevGray = gray;
+    }
+
+    return ans;
+}
+
+// uses the permutation definition of the derivative, generalized to 3D.
+long long det3DMod(const vector<vector<vector<long long>>>& A, long long p) {
+    int n = A.size();
+
+    if (n == 1)
+        return A[0][0][0] % p;
+
+    long long ans = 0;
+
+    for (int y = 0; y < n; y++) {
+        for (int z = 0; z < n; z++) {
+
+            long long sign = ((y + z) % 2 == 0) ? 1 : -1;
+
+            std::vector<std::vector<std::vector<long long>>> B;
+
+            for (int x2 = 1; x2 < n; x2++) {
+                std::vector<std::vector<long long>> plane;
+
+                for (int y2 = 0; y2 < n; y2++) {
+                    if (y2 == y) continue;
+
+                    std::vector<long long> row;
+
+                    for (int z2 = 0; z2 < n; z2++) {
+                        if (z2 == z) continue;
+
+                        row.push_back(A[x2][y2][z2] % p);
+                    }
+
+                    plane.push_back(row);
+                }
+
+                B.push_back(plane);
+            }
+
+            long long sub = det3DMod(B, p);
+
+            long long term = A[0][y][z] % p;
+            term = (long long)term * sub % p;
+            term = (long long)term * sign % p;
+
+            ans += term;
+            ans %= p;
+        }
+    }
+
+    if (ans < 0) ans += p;
+    return ans;
+}
+
+// adds S.size() zeroes to the left and right of S
 vector<int> zeroPad(vector<int> S) {
     vector<int> result(S.size() * 3);
     copy(S.begin(), S.end(), result.begin() + S.size());
