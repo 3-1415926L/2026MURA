@@ -94,7 +94,7 @@ void doNumberWallStuff(WallType& W,
         cout << endl << endl;
     }
     if (NWfeatures["save_image"]) { // save_image
-        W.savePNG("a.png", NWargs["morphism_size"]);
+        W.savePNG("a.png", NWargs["pixel_size"]);
         cout << "Wall image saved" << endl;
         SW.printAndReset();
         cout << endl << endl;
@@ -106,6 +106,11 @@ void doNumberWallStuff(WallType& W,
     }
     if (NWfeatures["max_element"]) { // find_morphism
         cout << "Maximum element in wall = " << W.getMaxNum() << endl;
+        SW.printAndReset();
+        cout << endl << endl;
+    }
+    if (NWfeatures["max_zero_size"]) { // find_morphism
+        cout << "Maximum zero square size = " << W.maxZeroSize() << endl;
         SW.printAndReset();
         cout << endl << endl;
     }
@@ -124,6 +129,7 @@ void doNumberWallStuff(WallType& W,
 
 
 int main() {
+
     vector<int> S;
     ifstream ff{"inputNumberWalls.txt"};
     string testInput;
@@ -131,8 +137,10 @@ int main() {
         cerr << "Could not find inputNumberWalls.txt" << endl;
         exit(1);
     }
-    int modulo, genOption, NWtype;
+
+    int modulo, seqOption, NWtype;
     bool usingSquareWall;
+    getInput(ff, "sequence_option", seqOption);
     getInput(ff, "modulo", modulo);
     getInput(ff, "number_wall_type", NWtype);
     getInput(ff, "square_wall", usingSquareWall);
@@ -150,6 +158,9 @@ int main() {
 
     getInput(ff, "max_element", feature);
     NWfeatures["max_element"] = feature;
+
+    getInput(ff, "max_zero_size", feature);
+    NWfeatures["max_zero_size"] = feature;
 
     getInput(ff, "check_FC1", feature);
     NWfeatures["check_FC1"] = feature;
@@ -173,9 +184,7 @@ int main() {
         NWargs["pixel_size"] = arg;
     }
 
-    getInput(ff, "sequence_generation_option", genOption);
-
-    if (genOption == 1) {
+    if (seqOption == 1) {
         // Option 1 - A sequence in the sequences folder
         skipTo(ff, "Option_1");
 
@@ -198,7 +207,7 @@ int main() {
             cerr << "Could not read from " << sequenceFile << endl;
         }
 
-    } else if (genOption == 2) {
+    } else if (seqOption == 2) {
         // Option 2 - A sequence in a specified file
         skipTo(ff, "Option_2");
 
@@ -220,7 +229,7 @@ int main() {
             cerr << "Could not read from " << sequenceFile << endl;
         }
 
-    } else if (genOption == 3) {
+    } else if (seqOption == 3) {
         // Option 3 - From a given morphism
         skipTo(ff, "Option_3");
 
@@ -251,7 +260,7 @@ int main() {
             applyMorphism(S, morphism);
         }
 
-    } else if (genOption == 4) {
+    } else if (seqOption == 4) {
         // Option 4 - From a custom sequence
         skipTo(ff, "Option_4");
 
@@ -262,7 +271,7 @@ int main() {
         }
 
     } else {
-        cerr << "Sequence generation option " << genOption
+        cerr << "Sequence generation option " << seqOption
              << " does not exist" << endl;
         exit(1);
     }

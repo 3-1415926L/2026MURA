@@ -1,9 +1,10 @@
 Fill in the following information to generate a number wall
 (see the notes section for any clarifications)
 
-======================================
+sequence_option:     3
+(See below)
 
-modulo:              3
+modulo:              2
 
 number_wall_type:    1
 (see "Number Wall types" below)
@@ -17,17 +18,20 @@ Select which features you would like to apply to the Number Wall
 (boolean 1 or 0)
 
 print_text:       0
-save_image:       1
+save_image:       0
 find_morphism:    1
 max_element:      0
+max_zero_size:    0
 check_FC1:        0
 
 ======================================
 
 If morphism finder is selected, then fill in the following:
 
-morphism_size:          3
+morphism_size:          6
 min_iters_for_unique:   2
+
+--------------------------------------
 
 If save_image is selected, then fill in the following:
 
@@ -35,19 +39,19 @@ pixel_size:             1
 
 ======================================
 
-sequence_generation_option:    3
-(See below)
+Fill in the required information for your
+selected sequence generation option
 
-======================================
+--------------------------------------
 
 Option_1 - A sequence in the sequences folder
 
 sequence_name:     pagoda
-max_width:         37
+max_width:         1000
 
 (see "Available files in sequences folder" below)
 
-======================================
+--------------------------------------
 
 Option_2 - A sequence in a specified file
 
@@ -56,40 +60,28 @@ max_width:         1000
 
 (must be in OEIS b-file format (see notes below))
 
-======================================
+--------------------------------------
 
 Option_3 - A sequence generated from a given morphism
 
 start_symbol:            1
-number_of_iterations:    6
+number_of_iterations:    5
 
 morphism_(below):
 
 1
-1 0 1
+1 0 0 0 0 1
 
 0
-0 0 0
+0 0 0 0 0 0
 
-======================================
+--------------------------------------
 
 Option_4 - A custom sequence entered here
 
 sequence_(below):
 
 3 1 4 1 5 9 2 6 5 3 5 8 9 7 9 3 2 3 8 4 6 2 6 4 3 3 8 3
-
-======================================
-
-Number Wall types:
-
-1 - uses frame constraint equations (default)
-
-2 - uses determinants of sequence Toeplitz matrices
-
-3 - uses permanants of sequence Toeplitz matrices
-
-4 - uses 3D equivalent of determinant of 3D Toeplitz tensor
 
 ======================================
 
@@ -139,6 +131,18 @@ Notes:
     9998 104717
     9999 104723
     10000 104729
+
+======================================
+
+Number Wall types:
+
+1 - uses frame constraint equations (default)
+
+2 - uses determinants of sequence Toeplitz matrices
+
+3 - uses permanants of sequence Toeplitz matrices
+
+4 - uses 3D equivalent of determinant of 3D Toeplitz tensor
 
 ======================================
 

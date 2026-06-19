@@ -277,17 +277,71 @@ struct NumberWallBase {
 
     // checks if all positions pass the test of the first frame equation
     bool checkFC1() {
+        int col, maxCol;
         for (int row = 1; row < height - 1; ++row) {
-            for (int col =  1; col < width - 1; ++col) {
+            
+            // get start col and maxCol
+            if constexpr (is_same_v<Layout, FlatLayout> ||
+                        is_same_v<Layout, NestedLayout>) {
+                col = row + 1;
+                maxCol = this->width - row - 1;
+            }
+            else {
+                col = 1;
+                maxCol = this->width - 1;
+            }
+
+            while (col < maxCol) {
                 if (validPos(row, col) &&
-                    get(row - 1, col) * get(row + 1, col)
+                    (get(row - 1, col) * get(row + 1, col)
                     + get(row, col - 1) * get(row, col + 1)
-                    - get(row, col) * get(row, col)) {
+                    - get(row, col) * get(row, col))
+                    % modulo) {
+                        throw "test";
                         return false;
                 }
+                ++col;
             }
         }
         return true;
+    }
+
+    int maxZeroSize() {
+        int maxSize = 0, currentSize = 0;
+        int row = 0;
+        int col, maxCol;
+
+        while (row < height) {
+
+            // get start col and maxCol
+            if constexpr (is_same_v<Layout, FlatLayout> ||
+                        is_same_v<Layout, NestedLayout>) {
+                col = row;
+                maxCol = this->width - row;
+            }
+            else {
+                col = 0;
+                maxCol = this->width;
+            }
+
+            while (col < maxCol) {
+                currentSize = 0;
+
+                while (col < maxCol && !get(row, col)) {
+                    currentSize++;
+                    col++;
+                }
+                if (currentSize > maxSize) {
+                    maxSize = currentSize;
+                }
+                ++col;
+                while (col < maxCol && get(row, col)) {
+                    ++col;
+                }
+            }
+            ++row;
+        }
+        return maxSize;
     }
 };
 
@@ -861,5 +915,32 @@ struct NumberWallNoMod {
             }
         }
         return true;
+    }
+
+    int maxZeroSize() {
+        int maxSize = 0, currentSize = 0;
+        int row = 0;
+        int col;
+
+        while (row < height) {
+            col = row;
+            while (col < width - row) {
+                currentSize = 0;
+
+                while (col < width - row && !get(row, col)) {
+                    currentSize++;
+                    col++;
+                }
+                if (currentSize > maxSize) {
+                    maxSize = currentSize;
+                }
+                ++col;
+                while (col < width - row && get(row, col)) {
+                    ++col;
+                }
+            }
+            ++row;
+        }
+        return maxSize;
     }
 }; // NumberWallNoMod
