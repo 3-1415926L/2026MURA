@@ -1,43 +1,51 @@
 Fill in the following information to generate a number wall
-It will appear as a.png in the 2026MURA directory
-(assuming generation is successful)
-
-pixel_size:      1
-modulo:          2
+(see the notes section for any clarifications)
 
 ======================================
 
-number_wall_type:     1
-(see below)
+modulo:              3
 
-square_wall:          1
+number_wall_type:    1
+(see "Number Wall types" below)
+
+square_wall:         1
 (boolean 1 or 0, see notes)
 
 ======================================
 
-Number Wall types
+Select which features you would like to apply to the Number Wall
+(boolean 1 or 0)
 
-1 - uses frame constraint equations (default)
-
-2 - uses determinants of sequence Toeplitz matrices
-
-3 - uses permanants of sequence Toeplitz matrices
-
-4 - uses 3D equivalent of determinant of 3D Toeplitz tensor
+print_text:       0
+save_image:       1
+find_morphism:    1
+max_element:      0
+check_FC1:        0
 
 ======================================
 
-sequence_generation_option:    1
+If morphism finder is selected, then fill in the following:
+
+morphism_size:          3
+min_iters_for_unique:   2
+
+If save_image is selected, then fill in the following:
+
+pixel_size:             1
+
+======================================
+
+sequence_generation_option:    3
 (See below)
 
 ======================================
 
 Option_1 - A sequence in the sequences folder
 
-sequence_name:     thue_morse
-max_width:         1023
+sequence_name:     pagoda
+max_width:         37
 
-(see notes below for list of sequence files)
+(see "Available files in sequences folder" below)
 
 ======================================
 
@@ -53,15 +61,15 @@ max_width:         1000
 Option_3 - A sequence generated from a given morphism
 
 start_symbol:            1
-number_of_iterations:    7
+number_of_iterations:    6
 
 morphism_(below):
 
 1
-1 0
+1 0 1
 
 0
-1
+0 0 0
 
 ======================================
 
@@ -69,7 +77,19 @@ Option_4 - A custom sequence entered here
 
 sequence_(below):
 
-3 1 4 1 5 9 2 6 5 3 5 8
+3 1 4 1 5 9 2 6 5 3 5 8 9 7 9 3 2 3 8 4 6 2 6 4 3 3 8 3
+
+======================================
+
+Number Wall types:
+
+1 - uses frame constraint equations (default)
+
+2 - uses determinants of sequence Toeplitz matrices
+
+3 - uses permanants of sequence Toeplitz matrices
+
+4 - uses 3D equivalent of determinant of 3D Toeplitz tensor
 
 ======================================
 
@@ -84,12 +104,30 @@ Notes:
     left and right of the sequence to make a square wall
     instead of the usual triangle
 
+- in square number walls, the information to the right of the
+    y=x line often looks random if the original sequence is
+    not supposed to have zeros to the right of it
+
+- you must be using a square number wall to look for a morphism
+
+- when saving a Number Wall image, it will appear as a.png in
+    the 2026MURA directory (assuming generation is successful)
+
+- checkFC1 will almost certainly fail if not using one of
+    the main two Number Wall definition
+
+- morphisms from the morphism finder are assumed to be square
+
+- min_iters_for_unique is the minimum number of iterations of
+    the morphism required to uniquely determine which symbol
+    you started with from the 0 positions in the resulting grid
+
 - do not add ".txt" to files from the sequences folder
 
 - a suffix of "_(below)" means the values should be entered
     in the line(s) below the input name
 
-- symbols in morphisms must be integers
+- symbols in input morphisms must be integers
 
 - an OEIS b-file is a file where where each line consists
     of the index followed by the sequence value, for example,
@@ -101,9 +139,10 @@ Notes:
     9998 104717
     9999 104723
     10000 104729
-    
 
-available files in sequences folder:
+======================================
+
+Available files in sequences folder:
 
 thue_morse
 1_paperfolding

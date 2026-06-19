@@ -1,4 +1,6 @@
 #include "NumberWalls.hpp"
+#include "Morphisms.hpp"
+#include "tools.hpp"
 
 #include <iostream>
 #include <vector>
@@ -6,10 +8,13 @@
 #include <fstream>
 #include <string>
 #include <algorithm>
+#include <unordered_map>
 
 using namespace std;
 
 
+
+StopWatch SW;
 
 void skipTo(ifstream& ff, string inputName) {
     string x;
@@ -43,16 +48,80 @@ void applyMorphism(vector<int>& S, unordered_map<int, vector<int>>& morphism) {
 }
 
 template<typename WallType>
-void doNumberWallStuff(WallType& W, int pixelSize) {
-    //if (!(W.validWall())) {
-    //    cerr << "Number wall was constructed invalidly" << endl;
-    //    exit(1);
-    //}
-    string outFile = "a.png";
-    //W.printWall();
-    W.savePNG(outFile , pixelSize);
-    //cout << "\n\n\n" << *max_element(W.wall.begin(), W.wall.end());
+void findMorphism(WallType& W, int morphismSize, int minUniqueIter) {
+
+    try {
+        Morphism M{W.wall, morphismSize, minUniqueIter};
+        
+        cout << "Found Morphism (canon size = "
+            << M.canonicalRules.size() << ") (full size = "
+            << M.countSymbols() << ")\n" << SW << endl << endl;
+
+        ofstream ff{"temp.txt"};
+        ff << "Canonical morphism\n\n";
+        M.printCanonicalMorphism(ff);
+        ff << "\n=========================\n\nFull morphism:\n\n";
+        M.printMorphism(ff);
+        ff << "\n=========================\n\nCoding:\n\n";
+        M.printCoding(ff);
+        cout << "Saved Morphism to temp.txt\n" << SW << endl << endl;
+
+        //*
+        bool sameZeros = M.compareZeros(W.wall);
+        if (sameZeros) cout << "The morphism PASSED the verification test" << endl;
+        else cout << "The morphism FAILED the verification test" << endl
+                  << "Try changing parameters or including more of the sequence" << endl;
+        //*/
+    } catch (...) {
+        cout << "Morphism not found" << endl
+             << "Try changing parameters or including more of the sequence" << endl;
+    }
 }
+
+template<typename WallType>
+void doNumberWallStuff(WallType& W,
+        unordered_map<string, bool>& NWfeatures,
+        unordered_map<string, int>& NWargs) {
+
+    cout << "Number Wall created" << endl;
+    SW.printAndReset();
+    cout << endl << endl;
+
+    if (NWfeatures["print_text"]) { // print_text
+        W.printWall();
+        cout << "Wall printed" << endl;
+        SW.printAndReset();
+        cout << endl << endl;
+    }
+    if (NWfeatures["save_image"]) { // save_image
+        W.savePNG("a.png", NWargs["morphism_size"]);
+        cout << "Wall image saved" << endl;
+        SW.printAndReset();
+        cout << endl << endl;
+    }
+    if (NWfeatures["find_morphism"]) { // find_morphism
+        findMorphism(W, NWargs["morphism_size"], NWargs["min_iters_for_unique"]);
+        SW.printAndReset();
+        cout << endl << endl;
+    }
+    if (NWfeatures["max_element"]) { // find_morphism
+        cout << "Maximum element in wall = " << W.getMaxNum() << endl;
+        SW.printAndReset();
+        cout << endl << endl;
+    }
+    if (NWfeatures["check_FC1"]) { // find_morphism
+        bool FC1 =  W.checkFC1();
+        if (FC1) {
+            cout << "The wall has PASSED the FC1 check" << endl;
+        } else {
+            cout << "The wall has FAILED the FC1 check" << endl;
+        }
+        SW.printAndReset();
+        cout << endl << endl;
+    }
+}
+
+
 
 int main() {
     vector<int> S;
@@ -62,12 +131,48 @@ int main() {
         cerr << "Could not find inputNumberWalls.txt" << endl;
         exit(1);
     }
-    int pixelSize, modulo, genOption, NWtype;
+    int modulo, genOption, NWtype;
     bool usingSquareWall;
-    getInput(ff, "pixel_size", pixelSize);
     getInput(ff, "modulo", modulo);
     getInput(ff, "number_wall_type", NWtype);
     getInput(ff, "square_wall", usingSquareWall);
+
+    unordered_map<string, bool> NWfeatures;
+    bool feature;
+    getInput(ff, "print_text", feature);
+    NWfeatures["print_text"] = feature;
+
+    getInput(ff, "save_image", feature);
+    NWfeatures["save_image"] = feature;
+
+    getInput(ff, "find_morphism", feature);
+    NWfeatures["find_morphism"] = feature;
+
+    getInput(ff, "max_element", feature);
+    NWfeatures["max_element"] = feature;
+
+    getInput(ff, "check_FC1", feature);
+    NWfeatures["check_FC1"] = feature;
+    
+    if (NWfeatures["find_morphism"] && !usingSquareWall) {
+        cerr << "Must be using a square numberwall to search for a morphism" << endl;
+        exit(1);
+    }
+    
+    unordered_map<string, int> NWargs;
+    int arg;
+    if (NWfeatures["find_morphism"]) {
+        getInput(ff, "morphism_size", arg);
+        NWargs["morphism_size"] = arg;
+        
+        getInput(ff, "min_iters_for_unique", arg);
+        NWargs["min_iters_for_unique"] = arg;
+    }
+    if (NWfeatures["save_image"]) {
+        getInput(ff, "pixel_size", arg);
+        NWargs["pixel_size"] = arg;
+    }
+
     getInput(ff, "sequence_generation_option", genOption);
 
     if (genOption == 1) {
@@ -174,29 +279,33 @@ int main() {
 
         S = vector<int>(S.begin() + firstNonZero, S.begin() + lastNonZero);
     }
+
+    cout << "Sequence generated" << endl;
+    SW.printAndReset();
+    cout << endl << endl;
     
-    // make wall from sequence
+    // make the Number Wall
     if (modulo == 0) {
         if (NWtype != 1 || usingSquareWall) {
             cerr << "This Number Wall type currently does not support modulus 0" << endl;
             exit(1);
         }
         NumberWallNoMod W{S};
-        doNumberWallStuff(W, pixelSize);
+        doNumberWallStuff(W, NWfeatures, NWargs);
     }
     else if (usingSquareWall) {
         if (NWtype == 1) {
             NumberWall<FlatSquareLayout> W{S, modulo};
-            doNumberWallStuff(W, pixelSize);
+            doNumberWallStuff(W, NWfeatures, NWargs);
         } else if (NWtype == 2) {
             NumberWallDet<FlatSquareLayout> W{S, modulo};
-            doNumberWallStuff(W, pixelSize);
+            doNumberWallStuff(W, NWfeatures, NWargs);
         } else if (NWtype == 3) {
             NumberWallPermRyser<FlatSquareLayout> W{S, modulo};
-            doNumberWallStuff(W, pixelSize);
+            doNumberWallStuff(W, NWfeatures, NWargs);
         } else if (NWtype == 4) {
             NumberWallDet3D<FlatSquareLayout> W{S, modulo};
-            doNumberWallStuff(W, pixelSize);
+            doNumberWallStuff(W, NWfeatures, NWargs);
         } else {
             cerr << "Number Wall type " << NWtype
                 << " does not exist" << endl;
@@ -207,16 +316,16 @@ int main() {
     else { // if not usingSquareWall
         if (NWtype == 1) {
             NumberWall W{S, modulo};
-            doNumberWallStuff(W, pixelSize);
+            doNumberWallStuff(W, NWfeatures, NWargs);
         } else if (NWtype == 2) {
             NumberWallDet W{S, modulo};
-            doNumberWallStuff(W, pixelSize);
+            doNumberWallStuff(W, NWfeatures, NWargs);
         } else if (NWtype == 3) {
             NumberWallPermRyser W{S, modulo};
-            doNumberWallStuff(W, pixelSize);
+            doNumberWallStuff(W, NWfeatures, NWargs);
         } else if (NWtype == 4) {
             NumberWallDet3D W{S, modulo};
-            doNumberWallStuff(W, pixelSize);
+            doNumberWallStuff(W, NWfeatures, NWargs);
         } else {
             cerr << "Number Wall type " << NWtype
                 << " does not exist" << endl;

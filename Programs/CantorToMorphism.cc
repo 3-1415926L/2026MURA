@@ -1,7 +1,7 @@
 #include "tools.hpp"
 #include "MiscSequenceGenerators.hpp"
 #include "NumberWalls.hpp"
-#include "MorphismFinder.hpp"
+#include "Morphisms.hpp"
 #include "AutomaticSequences.hpp"
 
 #include <vector>
@@ -81,7 +81,7 @@ int main() {
              << S.size() << ")\n" << SW << endl << endl;
     }
 
-    NumberWallSquare W{S, p};
+    NumberWall<NestedSquareLayout> W{S, p};
     cout << "Created Number Wall\n" << SW << endl << endl;
 
 try {

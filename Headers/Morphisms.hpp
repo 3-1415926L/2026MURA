@@ -26,6 +26,7 @@ uint8_t defaultZeroColour[3] = {255, 102, 0};
 // blue = {0, 0, 255}
 // black = {0, 0, 0}
 
+// from a file
 ChunkGrid loadImageChunks(string& filename, int chunkSize, uint8_t zeroColour[3] = defaultZeroColour) {
     int W, H;
     int C;
@@ -67,6 +68,7 @@ ChunkGrid loadImageChunks(string& filename, int chunkSize, uint8_t zeroColour[3]
     return chunks;
 }
 
+// from a 2D vector
 template<typename T>
 ChunkGrid loadWallChunks(vector<vector<T>>& wall, int chunkSize) {
     int H = wall.size();
@@ -88,6 +90,40 @@ ChunkGrid loadWallChunks(vector<vector<T>>& wall, int chunkSize) {
                     int globalY = cy * chunkSize + y;
 
                     chunk[y * chunkSize + x] = (wall[globalY][globalX] == 0) ? 0 : 1;
+                }
+            }
+        }
+    }
+
+    return chunks;
+}
+
+
+
+// from a 1D vector (assumes flattened square)
+template<typename T>
+ChunkGrid loadWallChunks(vector<T>& wall, int chunkSize) {
+    int H = sqrt(wall.size());
+    int W = H;
+
+    
+
+    int chunksX = W / chunkSize;
+    int chunksY = H / chunkSize;
+    ChunkGrid chunks(chunksY, vector<Chunk>(chunksX));
+
+    for (int cy = 0; cy < chunksY; cy++) {
+        for (int cx = 0; cx < chunksX; cx++) {
+
+            Chunk &chunk = chunks[cy][cx];
+            chunk.resize(chunkSize * chunkSize);
+            for (int y = 0; y < chunkSize; y++) {
+                for (int x = 0; x < chunkSize; x++) {
+
+                    int globalX = cx * chunkSize + x;
+                    int globalY = cy * chunkSize + y;
+
+                    chunk[y * chunkSize + x] = (wall[globalY * W + globalX] == 0) ? 0 : 1;;
                 }
             }
         }
@@ -266,7 +302,7 @@ struct Morphism {
         findMorphism(grid);
     }
 
-    // alt ctor that can accept a NumberWallSquare's wall
+    // ctor that can accept a Nested NumberWallSquare's wall
     template <typename T>
     Morphism(vector<vector<T>>& wall, int morphismSize, int minUniqueIter):
                                         morphismSize{morphismSize} {
@@ -274,7 +310,15 @@ struct Morphism {
         findMorphism(grid);
     }
 
-    // skeleton8 ctor used for derived SquareWallMorphism
+    // ctor that can accept a Flat NumberWallSquare's wall
+    template <typename T>
+    Morphism(vector<T>& wall, int morphismSize, int minUniqueIter):
+                                        morphismSize{morphismSize} {
+        ChunkGrid grid = loadWallChunks(wall, pow(morphismSize, minUniqueIter));
+        findMorphism(grid);
+    }
+
+    // skeleton ctor used for derived SquareWallMorphism
     Morphism(int morphismSize): morphismSize{morphismSize} {}
 
     void findMorphism(ChunkGrid& grid){
@@ -798,6 +842,76 @@ struct Morphism {
                         col + c * blockSize,
                         blockSize,
                         rule[r][c])) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // alternate version for Flat walls
+    template<typename T>
+    bool compareZeros(vector<T>& grid) {
+        string startSymbol = units[1].getSymbol();
+        int W = sqrt(grid.size());
+        map<string, Rule> rulesString = getRules();
+
+        // create symbolToId and idToSymbol
+        // assumes each symbol is unique
+        unordered_map<string, int> symbolToId;
+        vector<string> idToSymbol;
+        int c = 0;
+        for (auto& [symbol, rule] : rulesString) {
+            idToSymbol.push_back(symbol);
+            symbolToId[symbol] = c;
+            ++c;
+        }
+
+        // create rules map
+        unordered_map<int, vector<vector<int>>> rules;
+        int blockH = rulesString[startSymbol].size();
+        int blockW = rulesString[startSymbol][0].size();
+        for (auto& [symbol, rule] : rulesString) {
+            vector<vector<int>> block;
+            for (int r = 0; r < blockH; ++r) {
+                block.push_back({});
+                for (int c = 0; c < blockW; ++c) {
+                    block[r].push_back(symbolToId[rule[r][c]]);
+                }
+            }
+            rules[symbolToId[symbol]] = block;
+        }
+
+        int symbol = symbolToId[startSymbol];
+        return compareZerosRecurse(grid, rules, 0, 0, W, symbol, W);
+    }
+
+    template<typename T>
+    bool compareZerosRecurse(vector<T>& grid,
+        unordered_map<int, vector<vector<int>>>& rules,
+        int row, int col, int size, int symbol, int gridWidth) {
+
+        // base case
+        if (size == 1) {
+            bool isZero = (grid[row * gridWidth + col] == 0);
+            if (symbol == 0) return isZero;
+            else return !isZero;
+        }
+
+        // recursion
+        auto& rule = rules[symbol];
+        int blockSize = size / morphismSize;
+
+        for (int r = 0; r < morphismSize; ++r) {
+            for (int c = 0; c < morphismSize; ++c) {
+                if (!compareZerosRecurse(
+                        grid,
+                        rules,
+                        row + r * blockSize,
+                        col + c * blockSize,
+                        blockSize,
+                        rule[r][c],
+                        gridWidth)) {
                     return false;
                 }
             }
