@@ -33,7 +33,7 @@ ChunkGrid loadImageChunks(string& filename, int chunkSize, uint8_t zeroColour[3]
     unsigned char* data = stbi_load(filename.c_str(), &W, &H, &C, 3);
 
     if (!data) {
-        throw std::runtime_error("stbi_load failed: " + filename);
+        throw runtime_error("stbi_load failed: " + filename);
     }
 
     int chunksX = W / chunkSize;
@@ -97,8 +97,6 @@ ChunkGrid loadWallChunks(vector<vector<T>>& wall, int chunkSize) {
 
     return chunks;
 }
-
-
 
 // from a 1D vector (assumes flattened square)
 template<typename T>
@@ -237,6 +235,19 @@ string reflectH(string symbol) {
         else if (c == 'T') c = 'R';
     }
     return base + suffix;
+}
+
+template <typename T>
+void printChunk(vector<T>& chunk, int chunkWidth = 0) {
+    if (chunkWidth == 0) {
+        chunkWidth = sqrt(chunk.size());
+    }
+    for (int row = 0; row < chunkWidth; ++row) {
+        for (int col = 0; col < chunkWidth; ++col) {
+            cout << chunk[row * chunkWidth + col] << " ";
+        }
+        cout << endl;
+    }
 }
 
 
@@ -924,28 +935,11 @@ struct Morphism {
 
 // ==============================================
 
-/*
 
-struct ZeroSquare {
-    int bottom;
-    int l;
-    int rA, rB, rC;
-    int A0, Al; // = B0, Cl, respectively
-    // don't need D0=C0 or Dl=Bl because they appear in bottom row
-    vector<int> Ek, Fk, Gk;
-    // builds Hk as we go down the wall so that
-    //   it is ready by the time we need it
 
-    // ctor
-    ZeroSquare(int topRow, int l) {
-        Ek.reserve(l); // wait! won't know l at ctor time!
-        /////////////////////////////
-    }
+//*
 
-    void updateHk(int Bk, int Ck) {
 
-    }
-};
 
 // This is a hybrid of SquareNumberWall and Morphism that
 //   finds the morphism as it generates the wall, allowing
@@ -967,6 +961,9 @@ struct SquareWallMorphism: public Morphism {
             width{static_cast<int>(S.size())},
             chunkWidth{static_cast<int>(pow(morphismSize, minUniqueIter))} {
         
+        if (S[0] % modulo == 0 || S.back() % modulo == 0) {
+            throw invalid_argument("Sequence may not start or end with 0");
+        }
         Builder{*this, S, minUniqueIter};
     }
 
@@ -976,9 +973,7 @@ struct SquareWallMorphism: public Morphism {
 
         vector<int> prev;
         vector<int> prev2;
-        unordered_map<int, ZeroSquare> zeros;
-        // zeros[i] = info about zero square with
-        //     leftmost col (outside window) = i
+
         vector<int> chunk;
         vector<int> nextChunk;
 
@@ -992,6 +987,67 @@ struct SquareWallMorphism: public Morphism {
         // a list of inverses of numbers mod modulo
         // (can be used in place of an inverse function)
 
+        struct ZeroSquare {
+            Builder* B;
+            int top;
+            int bottom;
+            int l;
+            int rA, rB, rC, rD;
+            int A0, AlPlus1; // = B0, ClPlus1 respectively
+            // don't need D0 = C0 or DlPlus1 = BlPlus1 because
+            //     they appear in bottom row
+            vector<int> Ek, Fk, GkRev;
+            // builds Ek, Fk, and Gk as we go down the wall so that
+            //     they are ready by the time we need them
+            // GkRev is Gk flipped front to back (GkRev[i] = Gk[(l+1)-i])
+            //     This is so it can be built from the top down
+
+            // ctor
+            // Note this does not set the first element of Ak
+            //     That must be done manually after
+            ZeroSquare(Builder* B, int top, int rA, int rB, int A0):
+                    B{B}, top{top}, bottom{top + 1}, rA{rA}, rB{rB}, A0{A0} {}
+
+            void setEnd(int x, int s, int z) {
+                AlPlus1 = s;
+                rC = s * B->inverse[x] % B->modulo;
+                l = -z;
+                rD = rB * rC * B->inverse[rA] % B->modulo;
+                if (l % 2 == 1) {
+                    rD = B->modulo - rD;
+                }
+            }
+
+            int getHk(int w, int s) {
+                int k = l + w + 1;
+                int Ak = A0 * modPowPrime(rA, k, B->modulo) % B->modulo;
+                int x = rB * Ek[k - 1] * B->inverse[Ak] % B->modulo;
+
+                int Bk = A0 * modPowPrime(rB, k, B->modulo) % B->modulo; // B0 = A0
+                if (k % 2 == 0) {
+                    x += rA * Fk[k - 1] * B->inverse[Bk] % B->modulo;
+                } else {
+                    x += B->modulo - (rA * Fk[k - 1] * B->inverse[Bk] % B->modulo);
+                }
+
+                int Ck = AlPlus1 * modPowPrime(B->inverse[rC], l - k + 1, B->modulo) % B->modulo; // Cl = Al
+                if (k % 2 == 0) {
+                    x += B->modulo - (rD * GkRev[l - k] * B->inverse[Ck] % B->modulo);
+                } else {
+                    x += rD * GkRev[l - k] * B->inverse[Ck] % B->modulo;
+                }
+
+                x *= s * B->inverse[rC];
+                return x % B->modulo;
+            }
+        };
+        unordered_map<int, vector<ZeroSquare>> zeros;
+        // zeros[i] = info about all zero squares with
+        //     leftmost col (outside window) = i
+        //     (distinguish between zero squares at
+        //     left point i using the height range)
+
+        // ctor
         Builder(SquareWallMorphism& W, vector<int>& S, int minUniqueIter):
                 W{W}, modulo{W.modulo}, width{W.width},
                 chunkWidth{static_cast<int>(pow(W.morphismSize, minUniqueIter))} {
@@ -1001,81 +1057,298 @@ struct SquareWallMorphism: public Morphism {
                 inverse.push_back(modPow(i, W.modulo - 2, W.modulo));
             }
 
+            // set the number of chunks to be a multiple of the morphism size
+            int numChunksWide = width / chunkWidth / W.morphismSize * W.morphismSize;
+            int newWidth = numChunksWide * chunkWidth;
+
             // reserve prev vectors and chunks
             chunk.reserve(chunkWidth * chunkWidth);
             nextChunk.reserve(chunkWidth * chunkWidth);
-            prev2.reserve(S.size());
-            prev.reserve(S.size());
+            prev2.reserve(newWidth + 1); // a zero is added to the end of prev2 and prev so that the
+            prev.reserve(newWidth + 1);  //     last createChunk() doesn't access out of bounds
+            prev2[newWidth] = 0;
+            prev[newWidth] = 0;
 
             // loop through first row
-            /////////////////////////////
-
+            createFirstChunkRow(numChunksWide, S, newWidth);
 
             // loop through wall while constructing it to find the morphism
-            int numChunksWide = width / chunkWidth;
-            for (int chunkRow = 0; chunkRow < numChunksWide; ++chunkRow) {
+            for (int chunkRow = 1; chunkRow < numChunksWide; ++chunkRow) {
                 createChunkRow(numChunksWide, chunkRow);
             }
         }
 
         void createChunkRow(int numChunksWide, int chunkRow) {
+
+            // create the top-left triangle of the first chunk in the row
+            //     each following chunk will use that of the one before it
             createFirstChunk(chunkRow);
-            for (int chunkCol = 1; chunkCol < numChunksWide - 1; ++chunkCol) {
+
+            // create middle chunks
+            for (int chunkCol = 0; chunkCol < numChunksWide - 1; ++chunkCol) {
+
                 createChunk(chunkRow, chunkCol);
-
-                // check if chunk is new (add it if so)
-                // actually, only need to do this up to col,row / morphismSize
-                //     because if we find a new symbol here, then we know
-                //     the morphism finder won't succeed
-                // also must update lastUnitPosition
-                //     (only need to store one lastUnitPosition because the order
-                //     the SuperChunks are found is the same order the regular Chunks
-                //     are found, just scaled up)
-
-                // check if (position // morphismSize) matches lastUnitPosition
-                //     (then, do position % morphismSize to find which part of the unit it is)
-                // if so, update the coresponding rule
-
-                //////////////////////
+                processChunk(chunkRow, chunkCol);
             }
-            createLastChunk(chunkRow);
+
+            // create the bottom-right triangle of the last chunk in the row
+            //     (and process it as above)
+            createLastChunk(chunkRow, numChunksWide - 1);
+            processChunk(chunkRow, numChunksWide - 1);
         }
 
-        // This is the most important method.
-        //     It performs all the required number wall logic to get each new chunk.
-        //     It is important that this be as efficient as possible.
+        // iterates through a paralelogram creating the missing entries
+        //     of chunk and the entries of nextChunk required for the
+        //     next call of this function
         void createChunk(int chunkRow, int chunkCol) {
             
             chunk = move(nextChunk);
 
-            // make first two rows of nextChunk (and 2nd row, last element of chunk)
+            int    w;    // This is the relative location of each number wall entry
+            int a, s, d; //     x is the one being created
+            int z, x;
 
-            //   d
-            // a b c
-            //   x      (x = next one)
-            //
-            // Must check if a and/or c are zero, and if so,
-            //     (and b not 0) update their squares
+            // make first two rows of nextChunk from prev and prev2
+            // (keep in mind, staircase => 2nd row will have 1 element in chunk)
+            int idx = 0;
+            int ROW = chunkRow * chunkWidth;
+            int COL = (chunkCol + 1) * chunkWidth;
 
-            // move down chunk/nextChunk in a paralellogram path creating each row
-            for (int row = 2; row < chunkWidth; ++row) {
-                
+            // first row
+            s = prev[COL - 1]; // = first a
+            d = prev[COL]; // = first s
+            x = chunk[chunkWidth - 1]; // = first z
+
+            while (idx < chunkWidth) {
+                w = prev2[COL];
+                a = s;
+                s = d;
+                d = prev[COL + 1];
+                z = x;
+
+                x = getElement(w, a, s, d, z, ROW, COL);
+                nextChunk[idx] = x;
+
+                ++idx;
+                ++COL;
             }
 
-            /////////////////////////////
+            ++ROW;
+            COL = (chunkCol + 1) * chunkWidth - 1;
+
+            // first element of second row
+            w = prev[COL];
+            a = chunk[chunkWidth - 2];
+            s = chunk[chunkWidth - 1];
+            d = nextChunk[0];
+            z = chunk[2 * chunkWidth - 2];
+
+            x = getElement(w, a, s, d, z, ROW, COL);
+            chunk[2 * chunkWidth - 1] = x;
+
+            ++COL;
+
+            // rest of 2nd row
+            idx = chunkWidth;
+            while (idx < 2 * chunkWidth - 1) {
+                w = prev[COL];
+                a = s;
+                s = d;
+                d = nextChunk[idx - chunkWidth + 1];
+                z = x;
+
+                x = getElement(w, a, s, d, z, ROW, COL);
+                nextChunk[idx] = x;
+
+                ++idx;
+                ++COL;
+            }
+
+            // move down chunk/nextChunk in a paralellogram path creating each row >= 2
+            //     It is important this be fast as this code causes the majority of the run time
+            for (int row = 2; row < chunkWidth; ++row) {
+
+                ROW = chunkRow * chunkWidth + row;
+                COL = (chunkCol + 1) * chunkWidth - row;
+
+                // all but last column in chunk (only needs info from chunk)
+                idx = (row + 1) * chunkWidth - row;
+                s = chunk[idx - chunkWidth - 1]; // = first a
+                d = chunk[idx - chunkWidth]; // = first s
+                x = chunk[idx - 1];// = first z
+                while (idx < (row + 1) * chunkWidth - 1) {
+                    w = chunk[idx - 2 * chunkWidth];
+                    a = s;
+                    s = d;
+                    d = chunk[idx - chunkWidth + 1];
+                    z = x;
+
+                    x = getElement(w, a, s, d, z, ROW, COL);
+                    chunk[idx] = x;
+
+                    ++idx;
+                    ++COL;
+                }
+
+                // last column of chunk (needs d from nextChunk)
+                w = chunk[idx - 2 * chunkWidth];
+                a = s;
+                s = d;
+                d = nextChunk[(row - 1) * chunkWidth];
+                z = x;
+                
+                x = getElement(w, a, s, d, z, ROW, COL);
+                chunk[idx] = x;
+                
+                ++COL;
+
+                // all columns in nextChunk (only needs info from nextChunk)
+                //     (a and z are still in chunk, but they get their info from s and x)
+                idx = row * chunkWidth;
+                while (idx < (row + 1) * chunkWidth - row) {
+                    w = nextChunk[idx - 2 * chunkWidth];
+                    a = s;
+                    s = d;
+                    d = nextChunk[idx - chunkWidth + 1];
+                    z = x;
+
+                    x = getElement(w, a, s, d, z, ROW, COL);
+                    nextChunk[idx] = x;
+
+                    idx++;
+                    ++COL;
+                }
+            }
+
             updatePrev(chunkCol);
         }
 
-        void createFirstChunk(int chunkRow) { // has zeros in left triangle
-            
-            /////////////////////////////
-            updatePrev(0);
+        // This is the most important method. It performs
+        //     all the required number wall logic to get each new element of
+        //     the wall. It is important that this be as efficient as possible.
+        // Note: zeros are stored as negative numbers representing how
+        //     far from the left edge of the squere the given zero is
+        //     (The exception of this is the infinite zero squares to the left,
+        //     right, and top which are literal 0s)
+        //     (the zero squares of literal 0s will not be updated)
+        int getElement(int w, int a, int s, int d, int z, int ROW, int COL) {
+
+            // get x
+            int x;
+            if (w > 0) {
+                if (a > 0 && d > 0) {
+                    if (s > 0) {
+                        x = ((s * s + (modulo - a) * d) * inverse[w]) % modulo;
+                    } else { // s == 0
+                        x = ((modulo - a) * d * inverse[w]) % modulo;
+                    }
+                } else { // a or d == 0
+                    if (s > 0) {
+                        x = (s * s) * inverse[w] % modulo;
+                    } else { // s == 0
+                        x = 0;
+                    }
+                }
+            }
+
+            else if (s < 0) { // x = Dk
+                if (z < 0) {
+                    x = 0;
+                }
+                else {
+                    // must find zero square containing s
+                    auto [zs, zsit] = findZeroSquare(COL + s, ROW - 1);
+                    x = z * inverse[zs->rD] % modulo; // = z * rD^-1
+                }
+            }
+
+            else { // x = Hk
+                // must find zero square containing w
+                auto [zs, zsit] = findZeroSquare(COL + w, ROW - 2);
+                x = zs->getHk(w, s);
+
+                if (zs->l + w == 0) { // if last Hk, destroy zs
+                    zeros[COL + w].erase(zsit);
+                }
+            }
+
+
+            // if zero, assign correct negative value
+            if (x == 0) {
+                if (z < 0) {
+                    x = z - 1;
+                    if (s > 0) { // update Ek //////////////////////////// ???
+
+                    }
+                }
+                else {
+                    x = -1;
+                    if (s > 0) { // x = first zero in a zero square
+                        zeros[COL - 1].emplace_back(
+                                this, // B
+                                ROW - 1, // top
+                                s * inverse[a] % modulo, // rA
+                                z * inverse[a], // rB
+                                a); // A0
+                    }
+                }
+            }
+            else if (z < 0 && a > 0) { // z = last zero in square
+                auto [zs, zsit] = findZeroSquare(COL - 1 + z, ROW);
+                // l is set here, bottom is incremented for each Ek
+                //     (At this stage, bottom - top should = l)
+                zs->setEnd(x, s, z);
+            }
+
+            // if s != 0 and x, a, or d == 0, then update coresponding zero square
+            //     (this will run even if the zero square was just created)
+            //     (Note this will NOT run if the values are a literal 0,  i.e., if the
+            //     zero square is one of the infitite ones to the top, left, or right)
+            if (s > 0) {
+                if (x < 0) { // update Ek of square at x
+                    auto [zs, zsit] = findZeroSquare(COL + x, ROW);
+                    if (w > 0) {
+                        zs->Ek.push_back(w);
+                    } else {
+                        zs->Ek.push_back(0);
+                    }
+                    // Increment bottom for each Ek
+                    // when the end of zs has been found, bottom - top should = l
+                    zs->bottom++;
+                }
+                if (a < 0) { // update GkRev of square at a
+                    auto [zs, zsit] = findZeroSquare(COL - 1 + a, ROW - 1);
+                    if (d > 0) {
+                        zs->GkRev.push_back(d);
+                    } else {
+                        zs->GkRev.push_back(0);
+                    }
+                }
+                if (d < 0) { // update Fk of square at d
+                    auto [zs, zsit] = findZeroSquare(COL + 1 + d, ROW - 1);
+                    if (a > 0) {
+                        zs->Fk.push_back(a);
+                    } else {
+                        zs->Fk.push_back(0);
+                    }
+                }
+            }
+
+            return x;
         }
 
-        void createLastChunk(int chunkRow) { // has zeros in right triangle
-            
-            ///////////////////////////////
-            // don't update prev
+        // finds the zero square with left edge x and with
+        //     y somewhere in its height range
+        pair<ZeroSquare*, vector<ZeroSquare>::iterator> findZeroSquare(int x, int y) {
+            auto mapIt = zeros.find(x);
+            if (mapIt == zeros.end()) return {nullptr, {}};
+
+            auto& vec = mapIt->second;
+            for (auto it = vec.begin(); it != vec.end(); ++it) {
+                if (it->bottom > y && y > it->top) // top < y < bottom because down = larger row
+                    return {&*it, it};
+            }
+            return {nullptr, vec.end()};
         }
 
         // copies last two rows of chunk into prev and prev2
@@ -1087,13 +1360,600 @@ struct SquareWallMorphism: public Morphism {
             copy_n(chunkLastRow, chunkWidth, prev2Start);
             copy_n(chunkLastRow - chunkWidth, chunkWidth, prevStart);
         }
+
+        // This is where most of the morphism finding logic occurs
+        // Unlike the original Morphism, this runs through each chunk only once
+        void processChunk(int chunkRow, int chunkCol) { ///////////////////////
+
+            // convert to Morphism-style chunk
+            vector<uint8_t> chunk0;
+            chunk0.reserve(chunk.size());
+            for (int x : chunk) {
+                chunk0.push_back(x < 0 ? 0 : static_cast<uint8_t>(x));
+            }
+
+            /////////////////////
+
+            // temp code {
+            if (chunkRow < 0 || chunkCol < 0) {
+                cout << "temp string";
+            }
+            printChunk(chunk, chunkWidth);
+            cout << endl;
+            // }
+
+            // Then...
+            // check if chunk is new (add it if so)
+            // actually, only need to do this up to col,row / morphismSize
+            //     because if we find a new symbol here, then we know
+            //     the morphism finder won't succeed
+            // also must update lastUnitPosition
+            //     (only need to store one lastUnitPosition because the order
+            //     the SuperChunks are found is the same order the regular Chunks
+            //     are found, just scaled up)
+
+            //////////////////////
+
+            // check if (position // morphismSize) matches lastUnitPosition
+            //     (then, do position % morphismSize to find which part of the unit it is)
+            // if so, update the coresponding rule
+
+            //////////////////////
+        }
+
+        // The following methods are similar to those above, but for edge cases
+        //     (Mostly literal edge cases, like the first row of the wall
+        //     or the first/last column of a row)
+
+        // creates top-left triangle in first chunk
+        //     (stores it in nextChunk because createChunk() will move it over)
+        //     (zeros to the left)
+        void createFirstChunk(int chunkRow) {
+
+            int    w;    // This is the relative location of each number wall entry
+            int a, s, d; //     x is the one being created
+            int z, x;
+
+            // make first two rows of nextChunk from prev and prev2
+            int idx = 0;
+            int ROW = chunkRow * chunkWidth;
+            int COL = 0;
+
+            // first row
+
+            // first element of first row
+            w = prev2[COL]; // guaranteed to be != 0 because zero square to the left => FC1
+            a = 0;
+            s = prev[COL];
+            d = prev[COL + 1];
+            z = 0;
+
+            x = s * s * inverse[w] % modulo; // a * d = 0
+            nextChunk[idx] = x;
+
+            // only d could be a zero square in zeros
+            //     if so, update its Fk
+            if (d < 0) {
+                auto [zs, zsit] = findZeroSquare(COL + 1 + d, ROW - 1);
+                zs->Fk.push_back(0); // a = 0
+            }
+
+            // x != 0, so don't need to check for new 0 square
+
+            ++idx;
+            ++COL;
+
+            // rest of first row
+            while (idx < chunkWidth) {
+                w = prev2[COL];
+                a = s;
+                s = d;
+                d = prev[COL + 1];
+                z = x;
+
+                x = getElement(w, a, s, d, z, ROW, COL);
+                nextChunk[idx] = x;
+
+                ++idx;
+                ++COL;
+            }
+
+            ++ROW;
+            idx = chunkWidth;
+            COL = 0;
+
+            // first element of second row
+            w = prev[COL]; // guaranteed to be != 0 because zero square to the left => FC1
+            a = 0;
+            s = nextChunk[COL];
+            d = nextChunk[COL + 1];
+            z = 0;
+
+            x = s * s * inverse[w] % modulo; // a * d = 0
+            nextChunk[idx] = x;
+
+            // only d could be a zero square in zeros
+            //     if so, update its Fk
+            if (d < 0) {
+                auto [zs, zsit] = findZeroSquare(COL + 1 + d, ROW - 1);
+                zs->Fk.push_back(0); // a = 0
+            }
+
+            // x != 0, so don't need to check for new 0 square
+
+            ++idx;
+            ++COL;
+
+            // rest of second row
+            while (idx < chunkWidth - 1) {
+                w = prev[COL];
+                a = s;
+                s = d;
+                d = nextChunk[COL + 1];
+                z = x;
+
+                x = getElement(w, a, s, d, z, ROW, COL);
+                nextChunk[idx] = x;
+
+                ++idx;
+                ++COL;
+            }
+
+            // move down nextChunk in a top-left triangle creating each row >= 2
+            for (int row = 2; row < chunkWidth; ++row) {
+
+                ROW = chunkRow * chunkWidth + row;
+                COL = 0;
+                idx = row * chunkWidth;
+
+                // first element of row
+                w = nextChunk[idx - 2 * chunkWidth]; // guaranteed to be != 0 because zero square to the left => FC1
+                a = 0;
+                s = nextChunk[idx - chunkWidth];
+                d = nextChunk[idx - chunkWidth + 1];
+                z = 0;
+
+                x = s * s * inverse[w] % modulo; // a * d = 0
+                nextChunk[idx] = x;
+
+                // only d could be a zero square in zeros
+                //     if so, update its Fk
+                if (d < 0) {
+                    auto [zs, zsit] = findZeroSquare(COL + 1 + d, ROW - 1);
+                    zs->Fk.push_back(0); // a = 0
+                }
+
+                // x != 0, so don't need to check for new 0 square
+
+                ++idx;
+                ++COL;
+
+                // rest of row
+                while (idx < (row + 1) * chunkWidth - row) {
+                    w = nextChunk[idx - 2 * chunkWidth];
+                    a = s;
+                    s = d;
+                    d = nextChunk[idx - chunkWidth + 1];
+                    z = x;
+
+                    x = getElement(w, a, s, d, z, ROW, COL);
+                    nextChunk[idx] = x;
+
+                    idx++;
+                    ++COL;
+                }
+            }
+
+            // don't updatePrev()
+        }
+
+        // creates bottom-right triangle of last chunk
+        //     (zeros to the right)
+        void createLastChunk(int chunkRow, int lastChunkIndex) {
+
+            chunk = move(nextChunk);
+            
+            int    w;    // This is the relative location of each number wall entry
+            int a, s, d; //     x is the one being created
+            int z, x;
+
+            // make first two rows of nextChunk from prev and prev2
+            // (Note this is actually only one element since it
+            //     is the bottom-right triangle we are creating)
+            int idx = 2 * chunkWidth - 1;
+            int ROW = 1;
+            int COL = lastChunkIndex * chunkWidth - 1;
+
+            // last (and only) element of second row
+            w = prev[COL]; // guaranteed to be != 0 because zero square to the right => FC1
+            a = chunk[idx - chunkWidth - 1];
+            s = chunk[idx - chunkWidth];
+            d = 0;
+            z = chunk[idx - 1];
+
+            x = s * s * inverse[w] % modulo; // a * d = 0
+            nextChunk[idx] = x;
+
+            // only a could be a zero square in zeros
+            //     if so, update its GkRev
+            if (a < 0) {
+                auto [zs, zsit] = findZeroSquare(COL - 1 + a, ROW - 1);
+                zs->GkRev.push_back(0); // d = 0
+            }
+
+            // move down nextChunk in a bottom-right triangle creating each row >= 2
+            for (int row = 2; row < chunkWidth; ++row) {
+
+                ROW = chunkRow * chunkWidth + row;
+                COL = (lastChunkIndex + 1) * chunkWidth - row;
+                idx = (row + 1) * chunkWidth - row;
+
+                // all but last element of row
+                s = chunk[idx - chunkWidth - 1]; // first a
+                d = chunk[idx - chunkWidth]; // first s
+                x = chunk[idx - 1]; // first z
+
+                while (idx < (row + 1) * chunkWidth - 1) {
+                    w = chunk[idx - 2 * chunkWidth];
+                    a = s;
+                    s = d;
+                    d = chunk[idx - chunkWidth + 1];
+                    z = x;
+
+                    x = getElement(w, a, s, d, z, ROW, COL);
+                    chunk[idx] = x;
+
+                    idx++;
+                    ++COL;
+                }
+
+                // last element of row
+                w = chunk[idx - 2 * chunkWidth]; // guaranteed to be != 0 because zero square to the right => FC1
+                a = s;
+                s = d;
+                d = 0;
+                z = x;
+
+                x = s * s * inverse[w] % modulo; // a * d = 0
+                nextChunk[idx] = x;
+
+                // only a could be a zero square in zeros
+                //     if so, update its GkRev
+                if (a < 0) {
+                    auto [zs, zsit] = findZeroSquare(COL - 1 + a, ROW - 1);
+                    zs->GkRev.push_back(0); // d = 0
+                }
+            }
+
+            updatePrev(lastChunkIndex);
+        }
+
+        // creates the first row of chunks in the number wall
+        void createFirstChunkRow(int numChunksWide, vector<int>& S, int newWidth) {
+
+            // create the top-left triangle of the first chunk in the row
+            //     each following chunk will use that of the one before it
+            createFirstChunkFirstRow(S);
+
+            // create middle chunks
+            for (int chunkCol = 0; chunkCol < numChunksWide - 1; ++chunkCol) {
+
+                createChunkFirstRow(S, chunkCol);
+                processChunk(0, chunkCol);
+            }
+
+            // create the bottom-right triangle of the last chunk in the row
+            //     (and process it as above)
+            // Note, the only place this differs from a regular createLastChunk()
+            //     call is in the last element of the second row, where w is 1 instead
+            //     of whatever's in prev. This can be fixed by setting this element of prev to 1
+            prev[newWidth - 1] = 1;
+            createLastChunk(0, numChunksWide - 1);
+            processChunk(0, numChunksWide - 1);
+        }
+
+        // creates top-left triangle in first chunk
+        //     (stores it in nextChunk because createChunk() will move it over)
+        //     (zeros to the left)
+        void createFirstChunkFirstRow(vector<int>& S) {
+
+            int    w;    // This is the relative location of each number wall entry
+            int a, s, d; //     x is the one being created
+            int z, x;
+
+            // make first two rows of nextChunk from prev and prev2
+            int idx = 0;
+            int ROW = 0;
+            int COL = 0;
+
+            // first row (just S)
+
+            x = 0; // = first z
+            while (idx < chunkWidth) {
+
+                z = x;
+                x = (S[idx] % modulo + modulo) % modulo; // first x != 0 because S can't start/end with 0
+
+                if (x == 0) { // if 0, set to correct negative value
+                    if (z < 0) {
+                        x = z - 1;
+                    }
+                    else { // x > 0
+                        x = -1;
+
+                        // create new 0 square at x (and update Ek)
+                        zeros[COL - 1].emplace_back(
+                                this, // B
+                                ROW - 1, // top
+                                1, // rA (s = a = 1)
+                                z, // rB (inverse[a] = 1)
+                                1); // A0 (a = 1)
+                    }
+                    // regardless of new or not, update 0 square at x (we know s == 1)
+                    auto [zs, zsit] = findZeroSquare(COL + x, ROW);
+                    zs->Ek.push_back(0); // w = 0
+                    zs->bottom++;
+                }
+                else { // x > 0
+                    if (z < 0) {
+                        // end of z's 0 square
+                        auto [zs, zsit] = findZeroSquare(COL - 1 + z, ROW);
+                        zs->setEnd(x, 1, z); // (s = 1)
+                    }
+                }
+                
+                nextChunk[idx] = x;
+
+                ++idx;
+                ++COL;
+            }
+
+            ++ROW;
+            COL = 0;
+            idx = chunkWidth;
+
+            // first element of second row
+            w = 1; // whole prev = 1
+            a = 0;
+            s = nextChunk[COL];
+            d = nextChunk[COL + 1];
+            z = 0;
+
+            x = s * s % modulo; // a * d = 0 and inverse[w] = 1
+            nextChunk[idx] = x;
+
+            // only d could be a zero square in zeros
+            //     if so, update its Fk
+            if (d < 0) {
+                auto [zs, zsit] = findZeroSquare(COL + 1 + d, ROW - 1);
+                zs->Fk.push_back(0); // a = 0
+            }
+
+            ++idx;
+            ++COL;
+
+            // rest of second row
+            while (idx < chunkWidth - 1) {
+                // w = 1
+                a = s;
+                s = d;
+                d = nextChunk[COL + 1];
+                z = x;
+
+                x = getElement(w, a, s, d, z, ROW, COL);
+                nextChunk[idx] = x;
+
+                ++idx;
+                ++COL;
+            }
+
+            // move down nextChunk in a top-left triangle creating each row >= 2
+            for (int row = 2; row < chunkWidth; ++row) {
+
+                ROW = row;
+                COL = 0;
+                idx = row * chunkWidth;
+
+                // first element of row
+                w = nextChunk[idx - 2 * chunkWidth]; // guaranteed to be != 0 because zero square to the left => FC1
+                a = 0;
+                s = nextChunk[idx - chunkWidth];
+                d = nextChunk[idx - chunkWidth + 1];
+                z = 0;
+
+                x = s * s * inverse[w] % modulo; // a * d = 0
+                nextChunk[idx] = x;
+
+                // only d could be a zero square in zeros
+                //     if so, update its Fk
+                if (d < 0) {
+                    auto [zs, zsit] = findZeroSquare(COL + 1 + d, ROW - 1);
+                    zs->Fk.push_back(0); // a = 0
+                }
+
+                ++idx;
+                ++COL;
+
+                // rest of row
+                while (idx < (row + 1) * chunkWidth - row) {
+                    w = nextChunk[idx - 2 * chunkWidth];
+                    a = s;
+                    s = d;
+                    d = nextChunk[idx - chunkWidth + 1];
+                    z = x;
+
+                    x = getElement(w, a, s, d, z, ROW, COL);
+                    nextChunk[idx] = x;
+
+                    idx++;
+                    ++COL;
+                }
+            }
+
+            // don't updatePrev()
+        }
+
+        void createChunkFirstRow(vector<int>& S, int chunkCol) {
+            
+            chunk = move(nextChunk);
+
+            int    w;    // This is the relative location of each number wall entry
+            int a, s, d; //     x is the one being created
+            int z, x;
+
+            // make first two rows of nextChunk from prev and prev2
+            // (keep in mind, staircase => 2nd row will have 1 element in chunk)
+            int idx = 0;
+            int ROW = 0;
+            int COL = (chunkCol + 1) * chunkWidth;
+
+            // first row (just S)
+
+            x = 0; // = first z
+            while (idx < chunkWidth) {
+
+                z = x;
+                x = (S[idx] % modulo + modulo) % modulo; // first x != 0 because S can't start/end with 0
+
+                if (x == 0) { // if 0, set to correct negative value
+                    if (z < 0) {
+                        x = z - 1;
+                    }
+                    else { // x > 0
+                        x = -1;
+
+                        // create new 0 square at x (and update Ek)
+                        zeros[COL - 1].emplace_back(
+                                this, // B
+                                ROW - 1, // top
+                                1, // rA (s = a = 1)
+                                z, // rB (inverse[a] = 1)
+                                1); // A0 (a = 1)
+                    }
+                    // regardless of new or not, update 0 square at x (we know s == 1)
+                    auto [zs, zsit] = findZeroSquare(COL + x, ROW);
+                    zs->Ek.push_back(0); // w = 0
+                    zs->bottom++;
+                }
+                else { // x > 0
+                    if (z < 0) {
+                        // end of z's 0 square
+                        auto [zs, zsit] = findZeroSquare(COL - 1 + z, ROW);
+                        zs->setEnd(x, 1, z); // (s = 1)
+                    }
+                }
+                
+                nextChunk[idx] = x;
+
+                ++idx;
+                ++COL;
+            }
+
+            ++ROW;
+            COL = (chunkCol + 1) * chunkWidth - 1;
+
+            // first element of second row
+            w = 1;
+            a = chunk[chunkWidth - 2];
+            s = chunk[chunkWidth - 1];
+            d = nextChunk[0];
+            z = chunk[2 * chunkWidth - 2];
+
+            x = getElement(w, a, s, d, z, ROW, COL);
+            chunk[2 * chunkWidth - 1] = x;
+
+            ++COL;
+
+            // rest of 2nd row
+            idx = chunkWidth;
+            while (idx < 2 * chunkWidth - 1) {
+                // w = 1
+                a = s;
+                s = d;
+                d = nextChunk[idx - chunkWidth + 1];
+                z = x;
+
+                x = getElement(w, a, s, d, z, ROW, COL);
+                nextChunk[idx] = x;
+
+                ++idx;
+                ++COL;
+            }
+
+            // move down chunk/nextChunk in a paralellogram path creating each row >= 2
+            //     It is important this be fast as this code causes the majority of the run time
+            for (int row = 2; row < chunkWidth; ++row) {
+
+                ROW = row;
+                COL = (chunkCol + 1) * chunkWidth - row;
+
+                // all but last column in chunk (only needs info from chunk)
+                idx = (row + 1) * chunkWidth - row;
+                s = chunk[idx - chunkWidth - 1]; // = first a
+                d = chunk[idx - chunkWidth]; // = first s
+                x = chunk[idx - 1];// = first z
+                while (idx < (row + 1) * chunkWidth - 1) {
+                    w = chunk[idx - 2 * chunkWidth];
+                    a = s;
+                    s = d;
+                    d = chunk[idx - chunkWidth + 1];
+                    z = x;
+
+                    x = getElement(w, a, s, d, z, ROW, COL);
+                    chunk[idx] = x;
+
+                    ++idx;
+                    ++COL;
+                }
+
+                // last column of chunk (needs d from nextChunk)
+                w = chunk[idx - 2 * chunkWidth];
+                a = s;
+                s = d;
+                d = nextChunk[(row - 1) * chunkWidth];
+                z = x;
+                
+                x = getElement(w, a, s, d, z, ROW, COL);
+                chunk[idx] = x;
+                
+                ++COL;
+
+                // all columns in nextChunk (only needs info from nextChunk)
+                //     (a and z are still in chunk, but they get their info from s and x)
+                idx = row * chunkWidth;
+                while (idx < (row + 1) * chunkWidth - row) {
+                    w = nextChunk[idx - 2 * chunkWidth];
+                    a = s;
+                    s = d;
+                    d = nextChunk[idx - chunkWidth + 1];
+                    z = x;
+
+                    x = getElement(w, a, s, d, z, ROW, COL);
+                    nextChunk[idx] = x;
+
+                    idx++;
+                    ++COL;
+                }
+            }
+
+            updatePrev(chunkCol);
+        }
+
     }; // Builder
-};
 
-*/
+}; // SquareWallMorphism
+
+//*/
 
 
 
+
+
+
+
+
+// (If making row w/ height = chunk all at once)
+// (else, ignore)
 
 /* // Row of Chunks by row of Chunks
 for (int row = 0; row < maxrow; ++row) {

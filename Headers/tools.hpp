@@ -28,20 +28,11 @@ bool isPrime(int n) {
     return true; // No factors found -> prime
 }
 
-// efficiently finds x^p mod m
-// requires p >= 0, x >= 0
-int modPow(int x, int p, int m) {
-    int res = 1;
-    while (p > 0) {
-        p--;
-        res = (res * x) % m;
-    }
-    return res;
-}
-
-// same, but for 'long long' numbers
-long long modpow(long long a, long long e, long long m) {
-    long long r = 1;
+// efficiently finds a^e mod m
+template<typename T>
+T modPow(T a, T e, T m) {
+    T r = 1;
+    a = a % m;
     while (e > 0) {
         if (e & 1) r = (r * a) % m;
         a = (a * a) % m;
@@ -50,8 +41,23 @@ long long modpow(long long a, long long e, long long m) {
     return r;
 }
 
+// efficiently finds a^e mod p with p prime
+// same, but for 'long long' numbers
+template<typename T>
+T modPowPrime(T a, T e, T p) {
+    T r = 1;
+    e = e % (p - 1); // FlT
+    a = a % p;
+    while (e > 0) {
+        if (e & 1) r = (r * a) % p;
+        a = (a * a) % p;
+        e >>= 1;
+    }
+    return r;
+}
+
 long long modinv(long long a, long long p) {
-    return modpow((a % p + p) % p, p - 2, p);
+    return modPow((a % p + p) % p, p - 2, p);
 }
 
 // computes the determinant of A, mod p = prime
@@ -267,6 +273,7 @@ void printGrid(const vector<vector<T>>& grid, ostream& out = cout) {
     out << endl;
 }
 
+// Binomial coefficient
 // requires n > 0
 int choose(int n, int k) {
     if (k < 0 || k > n) return 0;

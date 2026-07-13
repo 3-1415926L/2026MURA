@@ -4,7 +4,7 @@ Fill in the following information to generate a number wall
 sequence_option:     3
 (See below)
 
-modulo:              2
+modulo:              7
 
 number_wall_type:    1
 (see "Number Wall types" below)
@@ -29,7 +29,7 @@ check_FC1:        0
 If morphism finder is selected, then fill in the following:
 
 morphism_size:          6
-min_iters_for_unique:   2
+min_iters_for_unique:   3
 
 --------------------------------------
 
