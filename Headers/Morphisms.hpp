@@ -335,6 +335,10 @@ struct Morphism {
     void findMorphism(ChunkGrid& grid){
         int sideLength = grid.size() / morphismSize;
 
+        if (sideLength == 0) {
+            throw invalid_argument("Sequence too small, or morphism size, min_iters_for_unique too large");
+        }
+
         // add 0 unit
         //int side = pow(morphismSize, minUniqueIter);
         Chunk zeroChunk(grid[0][0].size(), 0);
@@ -377,6 +381,14 @@ struct Morphism {
         if (inMorphism(chunk)) return;
 
         char type = getType(chunk);
+
+        if (type > 'Z') {
+            cout << "warning! a chunk type has gone past Z" << endl;
+        }
+        if (type < 0) {
+            throw string("over 128 types");
+        }
+
         int typeIdx = type - 'A';
         int unitIdx = typeCounts[typeIdx];
         string canVar = getCanonicalVariant(chunk);
@@ -502,7 +514,7 @@ struct Morphism {
                 symbol = rotate(symbol);
             }
         }
-        throw "Rule Not Found";
+        throw string("Rule Not Found");
     }
 
     string getSuffix(const string& symbol) const {
@@ -1061,11 +1073,11 @@ struct SquareWallMorphism: public Morphism {
             int numChunksWide = width / chunkWidth / W.morphismSize * W.morphismSize;
             int newWidth = numChunksWide * chunkWidth;
 
-            // reserve prev vectors and chunks
-            chunk.reserve(chunkWidth * chunkWidth);
-            nextChunk.reserve(chunkWidth * chunkWidth);
-            prev2.reserve(newWidth + 1); // a zero is added to the end of prev2 and prev so that the
-            prev.reserve(newWidth + 1);  //     last createChunk() doesn't access out of bounds
+            // resize prev vectors and chunks
+            chunk.resize(chunkWidth * chunkWidth);
+            nextChunk.resize(chunkWidth * chunkWidth);
+            prev2.resize(newWidth + 1); // a zero is added to the end of prev2 and prev so that the
+            prev.resize(newWidth + 1);  //     last createChunk() doesn't access out of bounds
             prev2[newWidth] = 0;
             prev[newWidth] = 0;
 
@@ -1339,13 +1351,14 @@ struct SquareWallMorphism: public Morphism {
 
         // finds the zero square with left edge x and with
         //     y somewhere in its height range
+        // (y can be the row directly beneath the square, but not the one above)
         pair<ZeroSquare*, vector<ZeroSquare>::iterator> findZeroSquare(int x, int y) {
             auto mapIt = zeros.find(x);
             if (mapIt == zeros.end()) return {nullptr, {}};
 
             auto& vec = mapIt->second;
             for (auto it = vec.begin(); it != vec.end(); ++it) {
-                if (it->bottom > y && y > it->top) // top < y < bottom because down = larger row
+                if (it->bottom >= y && y > it->top) // top < y < bottom because down = larger row
                     return {&*it, it};
             }
             return {nullptr, vec.end()};

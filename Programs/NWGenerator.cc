@@ -294,6 +294,7 @@ int main() {
     cout << endl << endl;
     
     // make the Number Wall
+    
     if (modulo == 0) {
         if (NWtype != 1 || usingSquareWall) {
             cerr << "This Number Wall type currently does not support modulus 0" << endl;

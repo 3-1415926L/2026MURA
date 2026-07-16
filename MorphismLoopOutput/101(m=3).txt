@@ -1,0 +1,149 @@
+Canonical morphism
+
+0
+0 0 0 
+0 0 0 
+0 0 0 
+
+A1V
+A1V 0 A1V 
+B1 A1H B1 
+A1V 0 A1V 
+
+B1
+C1NE D1N C1ES 
+D1W 0 D1E 
+C1WN D1S C1SW 
+
+C1NE
+C1NE D1N D1N 
+D1W 0 0 
+D1W 0 0 
+
+D1N
+D1N D1N D1N 
+0 0 0 
+0 0 0 
+
+
+=========================
+
+Full morphism:
+
+0
+0 0 0 
+0 0 0 
+0 0 0 
+
+A1V
+A1V 0 A1V 
+B1 A1H B1 
+A1V 0 A1V 
+
+A1H
+A1H B1 A1H 
+0 A1V 0 
+A1H B1 A1H 
+
+B1
+C1NE D1N C1ES 
+D1W 0 D1E 
+C1WN D1S C1SW 
+
+C1NE
+C1NE D1N D1N 
+D1W 0 0 
+D1W 0 0 
+
+C1ES
+D1N D1N C1ES 
+0 0 D1E 
+0 0 D1E 
+
+C1SW
+0 0 D1E 
+0 0 D1E 
+D1S D1S C1SW 
+
+C1WN
+D1W 0 0 
+D1W 0 0 
+C1WN D1S D1S 
+
+C1NW
+D1N D1N C1NW 
+0 0 D1E 
+0 0 D1E 
+
+C1EN
+0 0 D1E 
+0 0 D1E 
+D1S D1S C1EN 
+
+C1SE
+D1W 0 0 
+D1W 0 0 
+C1SE D1S D1S 
+
+C1WS
+C1WS D1N D1N 
+D1W 0 0 
+D1W 0 0 
+
+D1N
+D1N D1N D1N 
+0 0 0 
+0 0 0 
+
+D1E
+0 0 D1E 
+0 0 D1E 
+0 0 D1E 
+
+D1S
+0 0 0 
+0 0 0 
+D1S D1S D1S 
+
+D1W
+D1W 0 0 
+D1W 0 0 
+D1W 0 0 
+
+
+=========================
+
+Coding:
+
+0 0
+
+A1V 1
+
+A1H 1
+
+B1 1
+
+C1NE 1
+
+C1ES 1
+
+C1SW 1
+
+C1WN 1
+
+C1NW 1
+
+C1EN 1
+
+C1SE 1
+
+C1WS 1
+
+D1N 1
+
+D1E 1
+
+D1S 1
+
+D1W 1
+

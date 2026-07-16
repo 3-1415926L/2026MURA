@@ -4,7 +4,7 @@ Fill in the following information to generate a number wall
 sequence_option:     3
 (See below)
 
-modulo:              7
+modulo:              3
 
 number_wall_type:    1
 (see "Number Wall types" below)
@@ -28,8 +28,8 @@ check_FC1:        0
 
 If morphism finder is selected, then fill in the following:
 
-morphism_size:          6
-min_iters_for_unique:   3
+morphism_size:          5
+min_iters_for_unique:   2
 
 --------------------------------------
 
@@ -65,15 +65,15 @@ max_width:         1000
 Option_3 - A sequence generated from a given morphism
 
 start_symbol:            1
-number_of_iterations:    5
+number_of_iterations:    6
 
 morphism_(below):
 
 1
-1 0 0 0 0 1
+1 0 0 1 1
 
 0
-0 0 0 0 0 0
+0 0 0 0 0
 
 --------------------------------------
 
@@ -81,7 +81,7 @@ Option_4 - A custom sequence entered here
 
 sequence_(below):
 
-3 1 4 1 5 9 2 6 5 3 5 8 9 7 9 3 2 3 8 4 6 2 6 4 3 3 8 3
+0 0 0 1
 
 ======================================
 
