@@ -197,10 +197,9 @@ Chunk reflectH(Chunk chunk) {
 
 // rotates 90 degrees clockwise
 string rotate(string symbol) {
-    string base(1, symbol[0]);
-    string suffix = symbol.substr(1);
-
-    for (char& c : suffix) {
+    for (auto it = symbol.rbegin(); it != symbol.rend() && std::isupper(*it); ++it) {
+        char& c = *it;
+    
         if (c == 'N') c = 'E';
         else if (c == 'E') c = 'S';
         else if (c == 'S') c = 'W';
@@ -214,15 +213,14 @@ string rotate(string symbol) {
         else if (c == 'Q') c = 'T';
         else if (c == 'T') c = 'Q';
     }
-    return base + suffix;
+    return symbol;
 }
 
 // flips left and right
 string reflectH(string symbol) {
-    string base(1, symbol[0]);
-    string suffix = symbol.substr(1);
-
-    for (char& c : suffix) {
+    for (auto it = symbol.rbegin(); it != symbol.rend() && std::isupper(*it); ++it) {
+        char& c = *it;
+    
         if (c == 'E') c = 'W';
         else if (c == 'W') c = 'E';
         
@@ -234,7 +232,20 @@ string reflectH(string symbol) {
         else if (c == 'R') c = 'T';
         else if (c == 'T') c = 'R';
     }
-    return base + suffix;
+    return symbol;
+}
+
+// specific version for uint8_t
+void printChunk(vector<uint8_t>& chunk, int chunkWidth = 0) {
+    if (chunkWidth == 0) {
+        chunkWidth = sqrt(chunk.size());
+    }
+    for (int row = 0; row < chunkWidth; ++row) {
+        for (int col = 0; col < chunkWidth; ++col) {
+            cout << +chunk[row * chunkWidth + col] << " ";
+        }
+        cout << endl;
+    }
 }
 
 template <typename T>
@@ -255,7 +266,7 @@ void printChunk(vector<T>& chunk, int chunkWidth = 0) {
 // In the case of (5,2)-Cantor, units are 25 x 25 grids
 //   that can uniquely determine what symbol you have
 struct Unit {
-    char type;
+    string type;
     int index;
     string canonicalVariant;
     // "" => all symmetries => 1 variant (canonical = only one)
@@ -268,7 +279,7 @@ struct Unit {
     Chunk identifier;
     int posX, posY;
 
-    Unit(char type, int index, string canVar, Chunk chunk, int row, int col):
+    Unit(string type, int index, string canVar, Chunk chunk, int row, int col):
         type{type}, index{index}, canonicalVariant{canVar},
         identifier{chunk}, posY{row}, posX{col} {}
 
@@ -291,7 +302,7 @@ struct Unit {
     }
 
     string getSymbol() {
-        if (type == '0') return "0";
+        if (type == "0") return "0";
         return type + to_string(index) + canonicalVariant;
     }
 
@@ -340,9 +351,8 @@ struct Morphism {
         }
 
         // add 0 unit
-        //int side = pow(morphismSize, minUniqueIter);
         Chunk zeroChunk(grid[0][0].size(), 0);
-        units.emplace_back('0', 0, "", zeroChunk, 0, 0);
+        units.emplace_back("0", 0, "", zeroChunk, 0, 0);
 
         // add all the other units
         for (int row = 0; row < sideLength; ++row) {
@@ -377,34 +387,75 @@ struct Morphism {
         }
     }
 
-    void addUnit(Chunk& chunk, int row, int col) {
-        if (inMorphism(chunk)) return;
+    // first output is whether or not a new unit was created
+    // second output is a pointer to the unit (new or old) in the Morphism
+    pair<bool, Unit*> addUnit(Chunk& chunk, int row, int col) {
+        Unit* unit = findInMorphism(chunk);
+        if (unit) return {false, unit};
 
-        char type = getType(chunk);
+        string type = getType(chunk);
 
-        if (type > 'Z') {
-            cout << "warning! a chunk type has gone past Z" << endl;
-        }
-        if (type < 0) {
-            throw string("over 128 types");
-        }
-
-        int typeIdx = type - 'A';
+        int typeIdx = indexToSymbol(type);
         int unitIdx = typeCounts[typeIdx];
         string canVar = getCanonicalVariant(chunk);
 
         units.emplace_back(type, unitIdx, canVar, chunk, row, col);
+
+        return {true, &units.back()};
+    }
+
+    Unit* findInMorphism(Chunk& chunk) {
+        for (auto& u : units) {
+            if (u.isEquivalent(chunk)) return &u;
+        }
+        return nullptr;
     }
 
     bool inMorphism(Chunk& chunk) {
-        for (auto& u : units) {
-            if (u.isEquivalent(chunk)) return true;
+        return (findInMorphism(chunk));
+    }
+
+    string indexToSymbol(int idx) {
+        int len = 1;
+        int count = 26;
+
+        // find length of the output.
+        while (idx >= count) {
+            idx -= count;
+            ++len;
+            count *= 26;
         }
-        return false;
+
+        string s(len, 'A');
+
+        // write the base-26 digits.
+        for (int i = len - 1; i >= 0; i--) {
+            s[i] = 'A' + (idx % 26);
+            idx /= 26;
+        }
+
+        return s;
+    }
+
+    int indexToSymbol(const string& s) {
+        int offset = 0;
+        int count = 26;
+
+        for (int len = 1; len < s.size(); ++len) {
+            offset += count;
+            count *= 26;
+        }
+
+        int value = 0;
+        for (char c : s) {
+            value = 26 * value + (c - 'A');
+        }
+
+        return offset + value;
     }
 
     // assumes chunk is not all zeros
-    char getType(Chunk& chunk) {
+    string getType(Chunk& chunk) {
         vector<uint8_t> type;
 
         int sideLength = sqrt(chunk.size());
@@ -435,9 +486,9 @@ struct Morphism {
         if (typeIt != types.end()) { // return existing type
             int index = typeIt - types.begin();
             typeCounts[index]++;
-            return 'A' + index;
+            return indexToSymbol(index);
         } else { // create new type
-            char newType = 'A' + types.size();
+            string newType = indexToSymbol(types.size());
             typeCounts.push_back(1);
             types.push_back(type);
             return newType;
@@ -518,13 +569,13 @@ struct Morphism {
     }
 
     string getSuffix(const string& symbol) const {
-        if (symbol == "0")
-            return "";
-        int pos = 1; // skip first letter
-        while (pos < symbol.size() && isdigit(symbol[pos])) {
-            ++pos;
+        if (symbol == "0") return "";
+
+        size_t i = symbol.size();
+        while (i > 0 && isupper(static_cast<unsigned char>(symbol[i - 1]))) {
+            --i;
         }
-        return symbol.substr(pos);
+        return symbol.substr(i);
     }
 
     void printCanonicalMorphism(ostream& out = cout) {
@@ -614,7 +665,7 @@ struct Morphism {
                 continue;
             }
 
-            cerr << "Unknown suffix: " << suffix << endl;
+            throw string("Unknown suffix: " + suffix);
         }
     }
 
@@ -719,7 +770,7 @@ struct Morphism {
             else if (suffix == "C" || suffix == "V") count += 2;
             else if (suffix == "P" || suffix == "N" || suffix == "E") count += 4;
             else if (suffix == "NE") count += 8;
-            else cerr << "Unknown suffix: " << suffix << endl;
+            else throw string("Unknown suffix: " + suffix);
         }
         return count;
     }
@@ -796,7 +847,7 @@ struct Morphism {
                 continue;
             }
 
-            cerr << "Unknown suffix: " << suffix << endl;
+            throw string("Unknown suffix: " + suffix);
         }
         return rules;
     }
@@ -957,7 +1008,7 @@ struct Morphism {
 //   finds the morphism as it generates the wall, allowing
 //   it to only store two rows of the number wall (plus
 //   some data on zero regions) instead of the whole wall
-//   This takes the memory from O(n^2) to O(n)
+//   This brings the memory from O(n^2) to O(n)
 struct SquareWallMorphism: public Morphism {
     // Morphism stuff (not already included in Morphism)
     int chunkWidth;
@@ -976,6 +1027,13 @@ struct SquareWallMorphism: public Morphism {
         if (S[0] % modulo == 0 || S.back() % modulo == 0) {
             throw invalid_argument("Sequence may not start or end with 0");
         }
+
+        // add 0 unit
+        int chunkCapacity = pow(morphismSize, 2 * minUniqueIter);
+        Chunk zeroChunk(chunkCapacity, 0);
+        units.emplace_back("0", 0, "", zeroChunk, 0, 0);
+        canonicalRules["0"] = Rule(morphismSize, vector<string>(morphismSize, "0"));
+
         Builder{*this, S, minUniqueIter};
     }
 
@@ -998,6 +1056,10 @@ struct SquareWallMorphism: public Morphism {
         vector<int> inverse;
         // a list of inverses of numbers mod modulo
         // (can be used in place of an inverse function)
+
+        int newChunkCutoff;
+        unordered_map<pair<int, int>, int, PairHash> toProcess;
+        // toProcess[{r,c}] = index of unit in units at row r, col c
 
         struct ZeroSquare {
             Builder* B;
@@ -1072,6 +1134,7 @@ struct SquareWallMorphism: public Morphism {
             // set the number of chunks to be a multiple of the morphism size
             int numChunksWide = width / chunkWidth / W.morphismSize * W.morphismSize;
             int newWidth = numChunksWide * chunkWidth;
+            newChunkCutoff = numChunksWide / W.morphismSize;
 
             // resize prev vectors and chunks
             chunk.resize(chunkWidth * chunkWidth);
@@ -1114,7 +1177,8 @@ struct SquareWallMorphism: public Morphism {
         //     next call of this function
         void createChunk(int chunkRow, int chunkCol) {
             
-            chunk = move(nextChunk);
+            // put nextChunk in chunk (and preserve nextChunk's length)
+            swap(chunk, nextChunk);
 
             int    w;    // This is the relative location of each number wall entry
             int a, s, d; //     x is the one being created
@@ -1263,14 +1327,18 @@ struct SquareWallMorphism: public Morphism {
                 }
             }
 
-            else if (s < 0) { // x = Dk
-                if (z < 0) {
+            else if (s < 0) { // x = Dk or 0
+                if (z < 0) { // quick easy check
                     x = 0;
                 }
                 else {
                     // must find zero square containing s
                     auto [zs, zsit] = findZeroSquare(COL + s, ROW - 1);
-                    x = z * inverse[zs->rD] % modulo; // = z * rD^-1
+                    if (ROW < zs->bottom) { // x in zs
+                        x = 0;
+                    } else {
+                        x = z * inverse[zs->rD] % modulo; // = z * rD^-1
+                    }
                 }
             }
 
@@ -1370,8 +1438,8 @@ struct SquareWallMorphism: public Morphism {
             auto prev2Start = prev2.begin() + chunkCol * chunkWidth;
             auto prevStart = prev.begin() + chunkCol * chunkWidth;
 
-            copy_n(chunkLastRow, chunkWidth, prev2Start);
-            copy_n(chunkLastRow - chunkWidth, chunkWidth, prevStart);
+            copy_n(chunkLastRow, chunkWidth, prevStart);
+            copy_n(chunkLastRow - chunkWidth, chunkWidth, prev2Start);
         }
 
         // This is where most of the morphism finding logic occurs
@@ -1379,37 +1447,54 @@ struct SquareWallMorphism: public Morphism {
         void processChunk(int chunkRow, int chunkCol) { ///////////////////////
 
             // convert to Morphism-style chunk
-            vector<uint8_t> chunk0;
+            Chunk chunk0;
             chunk0.reserve(chunk.size());
             for (int x : chunk) {
-                chunk0.push_back(x < 0 ? 0 : static_cast<uint8_t>(x));
+                chunk0.push_back(x < 0 ? 0 : 1);
+                // change 1 to static_cast<uint8_t>(x) if you want to
+                //     differentiate between non-zeros
             }
+
+            // if new, add to Morphism
+            auto [isNew, unit] = W.addUnit(chunk0, chunkRow, chunkCol);
+
+            if (isNew && (chunkRow >= newChunkCutoff || chunkCol >= newChunkCutoff)) {
+                throw string("New Unit found past threshold");
+            }
+
+            // update toProcess and canonicalRules
+            if (isNew) {
+                toProcess[{chunkRow, chunkCol}] = W.units.size() - 1;
+                W.canonicalRules[unit->getSymbol()]
+                    = vector(W.morphismSize, vector<string>(W.morphismSize));
+            }
+
+            auto it = toProcess.find({chunkRow / W.morphismSize, chunkCol / W.morphismSize});
+            if (it != toProcess.end()) { // need to update a previous unit
+                
+                string symbol = W.getSymbol(chunk0);
+                // can be slightly optimized later, since we already know what unit
+                Unit* unitToUpdate = &(W.units[it->second]);
+                string symbolToUpdate = unitToUpdate->getSymbol();
+
+                int r = chunkRow % W.morphismSize;
+                int c = chunkCol % W.morphismSize;
+
+                W.canonicalRules[symbolToUpdate][r][c] = symbol;
+
+                // remove unitToUpdate from toProcess if we're done with it
+                if (r == W.morphismSize - 1 && c == W.morphismSize - 1) {
+                    toProcess.erase(it);
+                }
+            }
+            
 
             /////////////////////
 
             // temp code {
-            if (chunkRow < 0 || chunkCol < 0) {
-                cout << "temp string";
-            }
-            printChunk(chunk, chunkWidth);
-            cout << endl;
+            //printChunk(chunk, chunkWidth);
+            //cout << endl;
             // }
-
-            // Then...
-            // check if chunk is new (add it if so)
-            // actually, only need to do this up to col,row / morphismSize
-            //     because if we find a new symbol here, then we know
-            //     the morphism finder won't succeed
-            // also must update lastUnitPosition
-            //     (only need to store one lastUnitPosition because the order
-            //     the SuperChunks are found is the same order the regular Chunks
-            //     are found, just scaled up)
-
-            //////////////////////
-
-            // check if (position // morphismSize) matches lastUnitPosition
-            //     (then, do position % morphismSize to find which part of the unit it is)
-            // if so, update the coresponding rule
 
             //////////////////////
         }
@@ -1435,13 +1520,13 @@ struct SquareWallMorphism: public Morphism {
             // first row
 
             // first element of first row
-            w = prev2[COL]; // guaranteed to be != 0 because zero square to the left => FC1
+            w = prev2[COL]; // guaranteed to be > 0 because zero square to the left => FC1
             a = 0;
-            s = prev[COL];
+            s = prev[COL]; // same with s
             d = prev[COL + 1];
             z = 0;
 
-            x = s * s * inverse[w] % modulo; // a * d = 0
+            x = s * s * inverse[w] % modulo; // a * d = 0 & s > 0
             nextChunk[idx] = x;
 
             // only d could be a zero square in zeros
@@ -1476,13 +1561,13 @@ struct SquareWallMorphism: public Morphism {
             COL = 0;
 
             // first element of second row
-            w = prev[COL]; // guaranteed to be != 0 because zero square to the left => FC1
+            w = prev[COL]; // guaranteed to be > 0 because zero square to the left => FC1
             a = 0;
-            s = nextChunk[COL];
+            s = nextChunk[COL]; // same with s
             d = nextChunk[COL + 1];
             z = 0;
 
-            x = s * s * inverse[w] % modulo; // a * d = 0
+            x = s * s * inverse[w] % modulo; // a * d = 0 & s > 0
             nextChunk[idx] = x;
 
             // only d could be a zero square in zeros
@@ -1498,7 +1583,7 @@ struct SquareWallMorphism: public Morphism {
             ++COL;
 
             // rest of second row
-            while (idx < chunkWidth - 1) {
+            while (idx < 2 * chunkWidth - 1) {
                 w = prev[COL];
                 a = s;
                 s = d;
@@ -1520,13 +1605,13 @@ struct SquareWallMorphism: public Morphism {
                 idx = row * chunkWidth;
 
                 // first element of row
-                w = nextChunk[idx - 2 * chunkWidth]; // guaranteed to be != 0 because zero square to the left => FC1
+                w = nextChunk[idx - 2 * chunkWidth]; // guaranteed to be > 0 because zero square to the left => FC1
                 a = 0;
-                s = nextChunk[idx - chunkWidth];
+                s = nextChunk[idx - chunkWidth]; // same with s
                 d = nextChunk[idx - chunkWidth + 1];
                 z = 0;
 
-                x = s * s * inverse[w] % modulo; // a * d = 0
+                x = s * s * inverse[w] % modulo; // a * d = 0 & s > 0
                 nextChunk[idx] = x;
 
                 // only d could be a zero square in zeros
@@ -1564,7 +1649,8 @@ struct SquareWallMorphism: public Morphism {
         //     (zeros to the right)
         void createLastChunk(int chunkRow, int lastChunkIndex) {
 
-            chunk = move(nextChunk);
+            // put nextChunk in chunk (and preserve nextChunk's length)
+            swap(chunk, nextChunk);
             
             int    w;    // This is the relative location of each number wall entry
             int a, s, d; //     x is the one being created
@@ -1574,24 +1660,32 @@ struct SquareWallMorphism: public Morphism {
             // (Note this is actually only one element since it
             //     is the bottom-right triangle we are creating)
             int idx = 2 * chunkWidth - 1;
-            int ROW = 1;
-            int COL = lastChunkIndex * chunkWidth - 1;
+            int ROW = chunkRow * chunkWidth + 1;
+            int COL = (lastChunkIndex + 1) * chunkWidth - 1;
 
             // last (and only) element of second row
-            w = prev[COL]; // guaranteed to be != 0 because zero square to the right => FC1
+            w = prev[COL]; // guaranteed to be > 0 because zero square to the right => FC1
             a = chunk[idx - chunkWidth - 1];
-            s = chunk[idx - chunkWidth];
+            s = chunk[idx - chunkWidth]; // same with s
             d = 0;
             z = chunk[idx - 1];
 
-            x = s * s * inverse[w] % modulo; // a * d = 0
-            nextChunk[idx] = x;
+            x = s * s * inverse[w] % modulo; // a * d = 0 & s > 0
+            chunk[idx] = x;
 
             // only a could be a zero square in zeros
             //     if so, update its GkRev
             if (a < 0) {
                 auto [zs, zsit] = findZeroSquare(COL - 1 + a, ROW - 1);
                 zs->GkRev.push_back(0); // d = 0
+            }
+            else if (z < 0) {
+                // z could also be the end of a zero square
+                //     (if a > 0 and z < 0)
+                auto [zs, zsit] = findZeroSquare(COL - 1 + z, ROW);
+                // l is set here, bottom is incremented for each Ek
+                //     (At this stage, bottom - top should = l)
+                zs->setEnd(x, s, z);
             }
 
             // move down nextChunk in a bottom-right triangle creating each row >= 2
@@ -1621,20 +1715,28 @@ struct SquareWallMorphism: public Morphism {
                 }
 
                 // last element of row
-                w = chunk[idx - 2 * chunkWidth]; // guaranteed to be != 0 because zero square to the right => FC1
+                w = chunk[idx - 2 * chunkWidth]; // guaranteed to be > 0 because zero square to the right => FC1
                 a = s;
-                s = d;
+                s = d; // same with s
                 d = 0;
                 z = x;
 
-                x = s * s * inverse[w] % modulo; // a * d = 0
-                nextChunk[idx] = x;
+                x = s * s * inverse[w] % modulo; // a * d = 0 & s > 0
+                chunk[idx] = x;
 
                 // only a could be a zero square in zeros
                 //     if so, update its GkRev
                 if (a < 0) {
                     auto [zs, zsit] = findZeroSquare(COL - 1 + a, ROW - 1);
                     zs->GkRev.push_back(0); // d = 0
+                }
+                else if (z < 0) {
+                    // z could also be the end of a zero square
+                    //     (if a > 0 and z < 0)
+                    auto [zs, zsit] = findZeroSquare(COL - 1 + z, ROW);
+                    // l is set here, bottom is incremented for each Ek
+                    //     (At this stage, bottom - top should = l)
+                    zs->setEnd(x, s, z);
                 }
             }
 
@@ -1728,11 +1830,11 @@ struct SquareWallMorphism: public Morphism {
             // first element of second row
             w = 1; // whole prev = 1
             a = 0;
-            s = nextChunk[COL];
+            s = nextChunk[COL]; // > 0
             d = nextChunk[COL + 1];
             z = 0;
 
-            x = s * s % modulo; // a * d = 0 and inverse[w] = 1
+            x = s * s % modulo; // a * d = 0 & s > 0 & inverse[w] = 1
             nextChunk[idx] = x;
 
             // only d could be a zero square in zeros
@@ -1746,7 +1848,7 @@ struct SquareWallMorphism: public Morphism {
             ++COL;
 
             // rest of second row
-            while (idx < chunkWidth - 1) {
+            while (idx < 2 * chunkWidth - 1) {
                 // w = 1
                 a = s;
                 s = d;
@@ -1768,13 +1870,13 @@ struct SquareWallMorphism: public Morphism {
                 idx = row * chunkWidth;
 
                 // first element of row
-                w = nextChunk[idx - 2 * chunkWidth]; // guaranteed to be != 0 because zero square to the left => FC1
+                w = nextChunk[idx - 2 * chunkWidth]; // guaranteed to be > 0 because zero square to the left => FC1
                 a = 0;
-                s = nextChunk[idx - chunkWidth];
+                s = nextChunk[idx - chunkWidth]; // same with s
                 d = nextChunk[idx - chunkWidth + 1];
                 z = 0;
 
-                x = s * s * inverse[w] % modulo; // a * d = 0
+                x = s * s * inverse[w] % modulo; // a * d = 0 & s > 0
                 nextChunk[idx] = x;
 
                 // only d could be a zero square in zeros
@@ -1808,7 +1910,8 @@ struct SquareWallMorphism: public Morphism {
 
         void createChunkFirstRow(vector<int>& S, int chunkCol) {
             
-            chunk = move(nextChunk);
+            // put nextChunk in chunk (and preserve nextChunk's length)
+            swap(chunk, nextChunk);
 
             int    w;    // This is the relative location of each number wall entry
             int a, s, d; //     x is the one being created
@@ -1822,11 +1925,11 @@ struct SquareWallMorphism: public Morphism {
 
             // first row (just S)
 
-            x = 0; // = first z
+            x = chunk[chunkWidth - 1]; // = first z
             while (idx < chunkWidth) {
 
                 z = x;
-                x = (S[idx] % modulo + modulo) % modulo; // first x != 0 because S can't start/end with 0
+                x = (S[COL] % modulo + modulo) % modulo; // first x != 0 because S can't start/end with 0
 
                 if (x == 0) { // if 0, set to correct negative value
                     if (z < 0) {
@@ -1904,7 +2007,7 @@ struct SquareWallMorphism: public Morphism {
                 idx = (row + 1) * chunkWidth - row;
                 s = chunk[idx - chunkWidth - 1]; // = first a
                 d = chunk[idx - chunkWidth]; // = first s
-                x = chunk[idx - 1];// = first z
+                x = chunk[idx - 1]; // = first z
                 while (idx < (row + 1) * chunkWidth - 1) {
                     w = chunk[idx - 2 * chunkWidth];
                     a = s;
@@ -1957,28 +2060,3 @@ struct SquareWallMorphism: public Morphism {
 }; // SquareWallMorphism
 
 //*/
-
-
-
-
-
-
-
-
-// (If making row w/ height = chunk all at once)
-// (else, ignore)
-
-/* // Row of Chunks by row of Chunks
-for (int row = 0; row < maxrow; ++row) {
-    prev2 = prev;
-    prev = next;
-    // first/last columns are beside zero squares,
-    //   so they are geometric sequences
-    next[0] = prev[0] * prev[0] * inverse[prev2[0]] % modulo;
-
-    // make middle columns
-    for (int col = 0; col < )
-    next[width - 1] = prev[width - 1] * prev[width - 1]
-                      * inverse[prev2[width - 1]] % modulo;
-}
-// */

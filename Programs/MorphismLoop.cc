@@ -107,15 +107,20 @@ void findNWMorphism(NumberWall<FlatSquareLayout>& W, int modulo, int morphismSiz
 
 
 
+// Can change these:
+
 bool saveImage = 1;
 vector<int> modulos = {2, 3, 5, 7};
-int startLen = 5;
+int startLen = 2;
+int maxWidth = 40000;
+bool printDetails = 0;
+
+
 
 int main() {
 
     unordered_map<int, vector<int>> morphism;
     morphism[0] = vector<int>(startLen - 1, 0);
-    //int modulo = 2;
     
     for (int len = startLen;; ++len) { // shorter morphisms first
         morphism[0].push_back(0);
@@ -140,18 +145,18 @@ int main() {
 
             if (!has0 || !has1) continue;
 
-            /////////////////// remove this later
+            /////////////////// maybe remove this later
             if (!v[0] || !v.back()) continue;
 
             // use v as the morphism for 1
             morphism[1] = v;
 
-            cout << "================ 1->" << bitPattern << " (Msize="
-                 << morphismSize << ")" << endl << endl;
+            cout << endl << "================ 1->" << bitPattern << " (Msize="
+                 << morphismSize << ")" << endl;
             
             for (int modulo : modulos) {
 
-                cout << "======= m=" << modulo << endl << endl;
+                cout << "m=" << modulo << " ";
 
                 // for each rule for 1 and each modulo, attempt to find a morphism
 
@@ -159,30 +164,34 @@ int main() {
                 applyMorphism(S, morphism);
                 
                 bool found = false;
-                //modulo = 2;
-                for (int numIter = 2; S.size() * morphismSize < 16000; ++numIter) {
+                bool skipToNext = false;
+
+                for (int numIter = 2; S.size() * morphismSize < maxWidth; ++numIter) {
                     applyMorphism(S, morphism);
 
-                    if (found) break;
+                    if (found || skipToNext) break;
 
-                    cout << "--- numIter=" << numIter << endl << endl;
+                    /////cout << "--- numIter=" << numIter << endl << endl;
                     
                     // make the wall outside of the minUniqueIter loop
                     NumberWall<FlatSquareLayout> W{S, modulo};
 
                     for (int minUniqueIter = 1; minUniqueIter < numIter; ++minUniqueIter) {
                         
-                        cout << "minUniqueIter=" << minUniqueIter << endl;
+                        /////cout << "minUniqueIter=" << minUniqueIter << endl;
 
                         try {
-                            findNWMorphism(W, modulo, morphismSize, numIter, minUniqueIter, bitPattern, 1, saveImage);
+                            findNWMorphism(W, modulo, morphismSize, numIter, minUniqueIter, bitPattern, printDetails, saveImage);
                             found = true;
+                            cout << "FOUND ";
                             break;
                         }
                         catch (const string& s) {
                             if (s == "failed verification") {
                                 continue; // next minUniqueIter
                             } else if (s == "Rule Not Found") {
+                                break; // next numIter
+                            } else if (s == "New Unit found past threshold") {
                                 break; // next numIter
                             } else {
                                 throw s;
@@ -191,9 +200,11 @@ int main() {
                     }
                 }
 
+                /*
                 if (!found) {
                     cout << "Morphism not found with alloted resources" << endl << endl;
                 }
+                */
                 // onto next modulo
             }
             // onto next bit pattern

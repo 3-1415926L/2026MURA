@@ -142,6 +142,15 @@ int main() {
             }
         }
 
+        for (auto& [symbol, rule] : morphism) {
+            for (int element : rule) {
+                if (!morphism.contains(element)) {
+                    cerr << "No rule given for symbol " << element << endl;
+                    exit(1);
+                }
+            }
+        }
+
         S = vector{startSymbol};
         for (int i = 0; i < numIter; ++i) {
             applyMorphism(S, morphism);
@@ -169,8 +178,32 @@ int main() {
     
     // make the Number Wall and find its morphism
 
-    SquareWallMorphism SWM{S, modulo, morphismSize, minUniqueIter};
-    // ...
+    try {
+        SquareWallMorphism SWM{S, modulo, morphismSize, minUniqueIter};
+        
+        cout << "Found Morphism (canon size = "
+            << SWM.canonicalRules.size() << ") (full size = "
+            << SWM.countSymbols() << ")\n" << SW << endl << endl;
+
+        ofstream ffM{"temp.txt"};
+        ffM << "Canonical morphism\n\n";
+        SWM.printCanonicalMorphism(ffM);
+        ffM << "\n=========================\n\nFull morphism:\n\n";
+        SWM.printMorphism(ffM);
+        ffM << "\n=========================\n\nCoding:\n\n";
+        SWM.printCoding(ffM);
+        cout << "Saved Morphism to temp.txt\n" << SW << endl << endl;
+
+        /*
+        bool sameZeros = M.compareZeros(W.wall);
+        if (sameZeros) cout << "The morphism PASSED the verification test" << endl;
+        else cout << "The morphism FAILED the verification test" << endl
+                  << "Try changing parameters or including more of the sequence" << endl;
+        //*/
+    } catch (const string& s) {
+        cout << "Morphism not found" << endl
+             << "Try changing parameters or including more of the sequence" << endl;
+    }//*/
 
     return 0;
 }

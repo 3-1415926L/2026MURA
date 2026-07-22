@@ -4,7 +4,7 @@ Fill in the following information to generate a number wall
 sequence_option:     3
 (See below)
 
-modulo:              3
+modulo:              5
 
 number_wall_type:    1
 (see "Number Wall types" below)
@@ -70,7 +70,7 @@ number_of_iterations:    6
 morphism_(below):
 
 1
-1 0 0 1 1
+1 0 1 0 1
 
 0
 0 0 0 0 0

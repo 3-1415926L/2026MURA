@@ -254,6 +254,15 @@ int main() {
                 exit(1);
             }
         }
+        
+        for (auto& [symbol, rule] : morphism) {
+            for (int element : rule) {
+                if (!morphism.contains(element)) {
+                    cerr << "No rule given for symbol " << element << endl;
+                    exit(1);
+                }
+            }
+        }
 
         S = vector{startSymbol};
         for (int i = 0; i < numIter; ++i) {
