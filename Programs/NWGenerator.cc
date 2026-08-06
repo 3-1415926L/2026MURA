@@ -205,6 +205,7 @@ int main() {
         
         if (S.size() == 0) {
             cerr << "Could not read from " << sequenceFile << endl;
+            exit(1);
         }
 
     } else if (seqOption == 2) {
@@ -218,7 +219,7 @@ int main() {
         
         ifstream ffSeq{sequenceFile};
         int element;
-        int count;
+        int count = 0;
         while ((ffSeq >> testInput) && count < maxWidth) {
             ffSeq >> element;
             S.push_back(element);
@@ -227,6 +228,7 @@ int main() {
         
         if (S.size() == 0) {
             cerr << "Could not read from " << sequenceFile << endl;
+            exit(1);
         }
 
     } else if (seqOption == 3) {

@@ -47,9 +47,6 @@ void applyMorphism(vector<int>& S, unordered_map<int, vector<int>>& morphism) {
     S = move(result);
 }
 
-// 0 = success
-// 1 = found morphism, but didn't pass check
-// 2 = didn't find morphism
 void findNWMorphism(NumberWall<FlatSquareLayout>& W, int modulo, int morphismSize, int numIter,
         int minUniqueIter, string bitPattern, bool printDetails = 0, bool saveImage = 0) {
 
@@ -105,6 +102,64 @@ void findNWMorphism(NumberWall<FlatSquareLayout>& W, int modulo, int morphismSiz
     }
 }
 
+void findNWMorphism2(vector<int>& S, int modulo, int morphismSize, int numIter,
+        int minUniqueIter, string bitPattern, bool printDetails = 0, bool saveImage = 0) {
+
+    ostringstream tempOut;
+
+    //tempOut << "Number Wall created" << endl;
+    //SW.printAndReset(tempOut);
+    //tempOut << endl << endl;
+
+    SquareWallMorphism M{S, modulo, morphismSize, minUniqueIter};
+    
+    tempOut << "Found Morphism (canon size = "
+        << M.canonicalRules.size() << ") (full size = "
+        << M.countSymbols() << ")\n" << SW << endl << endl;
+    
+    /*
+    bool sameZeros = M.compareZeros(W.wall);
+    if (sameZeros) {
+        tempOut << "The morphism PASSED the verification test" << endl;
+        SW.printAndReset(tempOut);
+    }
+    else throw string("failed verification");
+    //*/
+
+    string morphismFile = "MorphismLoopOutput2/" + bitPattern + "(m=" + to_string(modulo) + ")(i="
+                        + to_string(numIter) + ")(mui=" + to_string(minUniqueIter) + ").txt";
+    ofstream ff{morphismFile};
+    ff << "Canonical morphism\n\n";
+    M.printCanonicalMorphism(ff);
+    ff << "\n=========================\n\nFull morphism:\n\n";
+    M.printMorphism(ff);
+    ff << "\n=========================\n\nCoding:\n\n";
+    M.printCoding(ff);
+
+    tempOut << "Saved Morphism to temp.txt\n" << SW << endl << endl;
+
+    if (saveImage) cout << "";
+    /*if (saveImage) {
+        try {
+            string imgFile = "MorphismLoopOutput2/" + bitPattern + "(m="
+                + to_string(modulo) + ")(i=" + to_string(numIter) + ").png";
+            W.savePNG(imgFile, 1);
+            tempOut << "Wall image saved" << endl;
+            SW.printAndReset(tempOut);
+            tempOut << endl << endl;
+        } catch (...) {
+            tempOut << "failed to save wall image" << endl;
+            SW.printAndReset(tempOut);
+            tempOut << endl << endl;
+        }
+    }//*/
+
+    // if made it this far without exceptions/errors, then print info
+    if (printDetails) {
+        cout << tempOut.str();
+    }
+}
+
 
 
 // Can change these:
@@ -112,7 +167,7 @@ void findNWMorphism(NumberWall<FlatSquareLayout>& W, int modulo, int morphismSiz
 bool saveImage = 1;
 vector<int> modulos = {2, 3, 5, 7};
 int startLen = 2;
-int maxWidth = 40000;
+int maxWidth = 40000; // 40,000
 bool printDetails = 0;
 
 
@@ -174,14 +229,16 @@ int main() {
                     /////cout << "--- numIter=" << numIter << endl << endl;
                     
                     // make the wall outside of the minUniqueIter loop
-                    NumberWall<FlatSquareLayout> W{S, modulo};
+
+                    //NumberWall<FlatSquareLayout> W{S, modulo};
 
                     for (int minUniqueIter = 1; minUniqueIter < numIter; ++minUniqueIter) {
                         
                         /////cout << "minUniqueIter=" << minUniqueIter << endl;
 
                         try {
-                            findNWMorphism(W, modulo, morphismSize, numIter, minUniqueIter, bitPattern, printDetails, saveImage);
+                            //findNWMorphism(W, modulo, morphismSize, numIter, minUniqueIter, bitPattern, printDetails, saveImage);
+                            findNWMorphism2(S, modulo, morphismSize, numIter, minUniqueIter, bitPattern, printDetails, saveImage);
                             found = true;
                             cout << "FOUND ";
                             break;

@@ -1,10 +1,10 @@
 Fill in the following information to generate a number wall
 (see the notes section for any clarifications)
 
-sequence_option:     3
+sequence_option:     2
 (See below)
 
-modulo:              5
+modulo:              13
 
 number_wall_type:    1
 (see "Number Wall types" below)
@@ -18,9 +18,9 @@ Select which features you would like to apply to the Number Wall
 (boolean 1 or 0)
 
 print_text:       0
-save_image:       0
-find_morphism:    1
-max_element:      0
+save_image:       1
+find_morphism:    0
+max_element:      1
 max_zero_size:    0
 check_FC1:        0
 
@@ -28,7 +28,7 @@ check_FC1:        0
 
 If morphism finder is selected, then fill in the following:
 
-morphism_size:          5
+morphism_size:          2
 min_iters_for_unique:   2
 
 --------------------------------------
@@ -46,7 +46,7 @@ selected sequence generation option
 
 Option_1 - A sequence in the sequences folder
 
-sequence_name:     pagoda
+sequence_name:     fibonacci_word
 max_width:         1000
 
 (see "Available files in sequences folder" below)
@@ -55,8 +55,8 @@ max_width:         1000
 
 Option_2 - A sequence in a specified file
 
-sequence_name:     sequences/pagoda.txt
-max_width:         1000
+sequence_name:     temp.txt
+max_width:         2125
 
 (must be in OEIS b-file format (see notes below))
 
@@ -65,15 +65,15 @@ max_width:         1000
 Option_3 - A sequence generated from a given morphism
 
 start_symbol:            1
-number_of_iterations:    6
+number_of_iterations:    2
 
 morphism_(below):
 
 1
-1 0 1 0 1
+1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1
 
 0
-0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 
 --------------------------------------
 

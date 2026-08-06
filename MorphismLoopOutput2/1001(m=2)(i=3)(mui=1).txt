@@ -1,0 +1,172 @@
+Canonical morphism
+
+0
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+
+A1N
+A1N 0 0 A1N 
+A1S 0 0 A1S 
+B1NE C1N C1N B1ES 
+C1W 0 0 C1E 
+
+B1NE
+B1NE C1N C1N C1N 
+C1W 0 0 0 
+C1W 0 0 0 
+C1W 0 0 0 
+
+C1N
+C1N C1N C1N C1N 
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+
+
+=========================
+
+Full morphism:
+
+0
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+
+A1N
+A1N 0 0 A1N 
+A1S 0 0 A1S 
+B1NE C1N C1N B1ES 
+C1W 0 0 C1E 
+
+A1E
+C1N B1ES A1W A1E 
+0 C1E 0 0 
+0 C1E 0 0 
+C1S B1SW A1W A1E 
+
+A1S
+C1W 0 0 C1E 
+B1WN C1S C1S B1SW 
+A1N 0 0 A1N 
+A1S 0 0 A1S 
+
+A1W
+A1W A1E B1NE C1N 
+0 0 C1W 0 
+0 0 C1W 0 
+A1W A1E B1WN C1S 
+
+B1NE
+B1NE C1N C1N C1N 
+C1W 0 0 0 
+C1W 0 0 0 
+C1W 0 0 0 
+
+B1ES
+C1N C1N C1N B1ES 
+0 0 0 C1E 
+0 0 0 C1E 
+0 0 0 C1E 
+
+B1SW
+0 0 0 C1E 
+0 0 0 C1E 
+0 0 0 C1E 
+C1S C1S C1S B1SW 
+
+B1WN
+C1W 0 0 0 
+C1W 0 0 0 
+C1W 0 0 0 
+B1WN C1S C1S C1S 
+
+B1NW
+C1N C1N C1N B1NW 
+0 0 0 C1E 
+0 0 0 C1E 
+0 0 0 C1E 
+
+B1EN
+0 0 0 C1E 
+0 0 0 C1E 
+0 0 0 C1E 
+C1S C1S C1S B1EN 
+
+B1SE
+C1W 0 0 0 
+C1W 0 0 0 
+C1W 0 0 0 
+B1SE C1S C1S C1S 
+
+B1WS
+B1WS C1N C1N C1N 
+C1W 0 0 0 
+C1W 0 0 0 
+C1W 0 0 0 
+
+C1N
+C1N C1N C1N C1N 
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+
+C1E
+0 0 0 C1E 
+0 0 0 C1E 
+0 0 0 C1E 
+0 0 0 C1E 
+
+C1S
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+C1S C1S C1S C1S 
+
+C1W
+C1W 0 0 0 
+C1W 0 0 0 
+C1W 0 0 0 
+C1W 0 0 0 
+
+
+=========================
+
+Coding:
+
+0 0
+
+A1N 1
+
+A1E 1
+
+A1S 1
+
+A1W 1
+
+B1NE 1
+
+B1ES 1
+
+B1SW 1
+
+B1WN 1
+
+B1NW 1
+
+B1EN 1
+
+B1SE 1
+
+B1WS 1
+
+C1N 1
+
+C1E 1
+
+C1S 1
+
+C1W 1
+
