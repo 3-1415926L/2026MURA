@@ -7,6 +7,8 @@ Use this if you have cmake installed
 
 ```powershell
 # Configure (run once or when adding new programs/headers)
+cmake -B build -S .
+or
 cmake -B build -S . -G "MinGW Makefiles"
 
 # Build all programs
