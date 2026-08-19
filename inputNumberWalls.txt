@@ -1,7 +1,7 @@
 Fill in the following information to generate a number wall
 (see the notes section for any clarifications)
 
-sequence_option:     2
+sequence_option:     3
 (See below)
 
 modulo:              13
@@ -9,7 +9,7 @@ modulo:              13
 number_wall_type:    1
 (see "Number Wall types" below)
 
-square_wall:         1
+square_wall:         0
 (boolean 1 or 0, see notes)
 
 ======================================
@@ -20,7 +20,7 @@ Select which features you would like to apply to the Number Wall
 print_text:       0
 save_image:       1
 find_morphism:    0
-max_element:      1
+max_element:      0
 max_zero_size:    0
 check_FC1:        0
 
@@ -65,15 +65,15 @@ max_width:         2125
 Option_3 - A sequence generated from a given morphism
 
 start_symbol:            1
-number_of_iterations:    2
+number_of_iterations:    5
 
 morphism_(below):
 
 1
-1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1
+1 0 0 1
 
 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0
 
 --------------------------------------
 

@@ -3,12 +3,17 @@
         {
             "name": "Windows",
             "includePath": [
-                "${workspaceFolder}/Headers",
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/src/Headers",
+                "${workspaceFolder}/**",
+                "C:/Program Files/Qt/6.11.1/mingw_64/include",
+                "C:/Program Files/Qt/6.11.1/mingw_64/include/QtCore",
+                "C:/Program Files/Qt/6.11.1/mingw_64/include/QtGui",
+                "C:/Program Files/Qt/6.11.1/mingw_64/include/QtWidgets"
             ],
             "defines": ["_DEBUG", "UNICODE", "_UNICODE"],
+            "compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
             "cppStandard": "c++20",
-            "intelliSenseMode": "msvc-x64"
+            "intelliSenseMode": "gcc-x64"
         }
     ],
     "version": 4

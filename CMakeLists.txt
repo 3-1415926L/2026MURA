@@ -5,13 +5,16 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-#find headers
-include_directories(${CMAKE_SOURCE_DIR}/Headers)
+# Build the Qt GUI?
+option(BUILD_GUI "Build the Qt GUI" OFF)
 
-# find programs
-file(GLOB PROGRAM_SOURCES "Programs/*.cc")
+# Find headers
+include_directories(${CMAKE_SOURCE_DIR}/src/Headers)
 
-file(GLOB COMMON_SOURCES "stb_image/stb_image_impl.cc")
+# Find terminal programs
+file(GLOB PROGRAM_SOURCES "src/Programs/*.cc")
+
+file(GLOB COMMON_SOURCES "src/stb_image_impl.cc")
 
 foreach(SOURCE_FILE ${PROGRAM_SOURCES})
     get_filename_component(EXEC_NAME ${SOURCE_FILE} NAME_WE)
@@ -21,7 +24,7 @@ foreach(SOURCE_FILE ${PROGRAM_SOURCES})
         ${COMMON_SOURCES}
     )
 
-    # compiler flags
+    # Compiler flags
     target_compile_options(${EXEC_NAME}
         PRIVATE
             -Wall
@@ -30,7 +33,7 @@ foreach(SOURCE_FILE ${PROGRAM_SOURCES})
             -g
     )
 
-    # removes these warnings
+    # Removes these warnings
     add_compile_options(
         -Wno-sign-compare # warnings about comparing ints and size_t
         #-Wno-unused-parameter
@@ -41,12 +44,54 @@ foreach(SOURCE_FILE ${PROGRAM_SOURCES})
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}"
     )
 
-    # ignore warnings for these specific files
+    # Ignore warnings for these specific files
     set_source_files_properties(
         ${COMMON_SOURCES}
-        ${CMAKE_SOURCE_DIR}/Headers/stb_image.h
-        ${CMAKE_SOURCE_DIR}/Headers/stb_image_write.h
+        ${CMAKE_SOURCE_DIR}/src/Headers/stb_image.h
+        ${CMAKE_SOURCE_DIR}/src/Headers/stb_image_write.h
         PROPERTIES
             COMPILE_FLAGS "-w"
     )
 endforeach()
+
+
+# ---------------------------------------------------------
+# Qt GUI
+# ---------------------------------------------------------
+
+if(BUILD_GUI)
+
+    find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
+    qt_add_executable(main_Qt
+        src/main_Qt.cc
+        ${COMMON_SOURCES}
+    )
+
+    target_link_libraries(main_Qt
+        PRIVATE
+            Qt6::Widgets
+    )
+
+    target_compile_options(main_Qt
+        PRIVATE
+            -Wall
+            -Wextra
+            -Wpedantic
+            -g
+    )
+
+    set_target_properties(main_Qt PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    )
+
+    # Ignore warnings for stb_image
+    set_source_files_properties(
+        ${COMMON_SOURCES}
+        ${CMAKE_SOURCE_DIR}/src/Headers/stb_image.h
+        ${CMAKE_SOURCE_DIR}/src/Headers/stb_image_write.h
+        PROPERTIES
+            COMPILE_FLAGS "-w"
+    )
+
+endif()
