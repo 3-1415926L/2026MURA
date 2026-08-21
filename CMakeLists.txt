@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Qt GUI version?
-option(BUILD_GUI "Build the Qt GUI" ON) # change to OFF later
+option(BUILD_GUI "Build the Qt GUI" OFF) # change to OFF later
 
 file(GLOB HEADER_FILES
     "${CMAKE_SOURCE_DIR}/src/Headers/*.hpp"
