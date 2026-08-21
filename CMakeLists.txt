@@ -34,7 +34,6 @@ foreach(SOURCE_FILE ${PROGRAM_SOURCES})
             -Wall
             -Wextra
             -Wpedantic
-            -g              # change to -O3 later
     )
 
     # Ignore these warnings
@@ -76,6 +75,12 @@ if(BUILD_GUI)
         ${HEADER_FILES}
     )
 
+    set_target_properties(NumberWallExplorer PROPERTIES
+        OUTPUT_NAME_DEBUG "NumberWallExplorer_debug"
+        OUTPUT_NAME_RELEASE "NumberWallExplorer"
+        MACOSX_BUNDLE TRUE
+    )
+
     target_link_libraries(NumberWallExplorer
         PRIVATE
             Qt6::Core
@@ -87,7 +92,6 @@ if(BUILD_GUI)
             -Wall
             -Wextra
             -Wpedantic
-            -g              # change to -O3 later
     )
 
     # Ignore these warnings
@@ -97,9 +101,9 @@ if(BUILD_GUI)
         #-Wno-unused-parameter # warnings about unused variables
     )
 
-    set_target_properties(NumberWallExplorer PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    )
+    #set_target_properties(NumberWallExplorer PROPERTIES
+    #    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    #)
 
     # Ignore warnings for stb_image
     set_source_files_properties(
