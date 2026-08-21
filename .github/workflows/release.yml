@@ -205,12 +205,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
+          echo "Creating release for $GH_REPO at tag $GITHUB_REF_NAME"
+          gh --version
+          gh api "repos/$GH_REPO" --silent
+
           TAG="${GITHUB_REF_NAME}"
 
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" dist/* --clobber
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber --repo "$GH_REPO"
           else
             gh release create "$TAG" \
+              --repo "$GH_REPO" \
               --title "NumberWallExplorer $TAG" \
               --generate-notes \
               dist/*
