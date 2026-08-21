@@ -1,15 +1,15 @@
 CXX = g++
 CXXFLAGS = -std=c++20 -O3 -Isrc/Headers
 
-PROGRAM_SOURCES := $(wildcard src/Programs/*.cc)
+PROGRAM_SOURCES := $(wildcard src/TerminalPrograms/*.cc)
 COMMON_SOURCES := src/stb_image_impl.cc
 
-TARGETS := $(patsubst src/Programs/%.cc,%,$(PROGRAM_SOURCES))
+TARGETS := $(patsubst src/TerminalPrograms/%.cc,%,$(PROGRAM_SOURCES))
 
 all: $(TARGETS)
 
 
-%: src/Programs/%.cc $(COMMON_SOURCES)
+%: src/TerminalPrograms/%.cc $(COMMON_SOURCES)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 
