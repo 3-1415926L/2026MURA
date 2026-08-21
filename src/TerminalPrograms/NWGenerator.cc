@@ -166,7 +166,7 @@ int main() {
     NWfeatures["check_FC1"] = feature;
     
     if (NWfeatures["find_morphism"] && !usingSquareWall) {
-        cerr << "Must be using a square numberwall to search for a morphism" << endl;
+        cerr << "Must be using a square number wall to search for a morphism" << endl;
         exit(1);
     }
     
@@ -336,16 +336,16 @@ int main() {
 
     else { // if not usingSquareWall
         if (NWtype == 1) {
-            NumberWall W{S, modulo};
+            NumberWall<FlatLayout> W{S, modulo};
             doNumberWallStuff(W, NWfeatures, NWargs);
         } else if (NWtype == 2) {
-            NumberWallDet W{S, modulo};
+            NumberWallDet<FlatLayout> W{S, modulo};
             doNumberWallStuff(W, NWfeatures, NWargs);
         } else if (NWtype == 3) {
-            NumberWallPermRyser W{S, modulo};
+            NumberWallPermRyser<FlatLayout> W{S, modulo};
             doNumberWallStuff(W, NWfeatures, NWargs);
         } else if (NWtype == 4) {
-            NumberWallDet3D W{S, modulo};
+            NumberWallDet3D<FlatLayout> W{S, modulo};
             doNumberWallStuff(W, NWfeatures, NWargs);
         } else {
             cerr << "Number Wall type " << NWtype

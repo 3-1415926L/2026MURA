@@ -357,22 +357,22 @@ void MainWindow::on_generate_wall_button_clicked()
 
         if (NWtype == 1) {
 
-            NumberWall W{S, modulo};
+            NumberWall<FlatLayout> W{S, modulo};
             doNumberWallStuff(W, NWfeatures, NWargs);
 
         } else if (NWtype == 2) {
 
-            NumberWallDet W{S, modulo};
+            NumberWallDet<FlatLayout> W{S, modulo};
             doNumberWallStuff(W, NWfeatures, NWargs);
 
         } else if (NWtype == 3) {
 
-            NumberWallPermRyser W{S, modulo};
+            NumberWallPermRyser<FlatLayout> W{S, modulo};
             doNumberWallStuff(W, NWfeatures, NWargs);
 
         } else if (NWtype == 4) {
 
-            NumberWallDet3D W{S, modulo};
+            NumberWallDet3D<FlatLayout> W{S, modulo};
             doNumberWallStuff(W, NWfeatures, NWargs);
 
         } else {
