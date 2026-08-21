@@ -20,6 +20,8 @@ public:
 private slots:
     void on_generate_wall_button_clicked();
 
+    void on_sequence_option_currentIndexChanged(int index);
+
 private:
     Ui::MainWindow *ui;
 };

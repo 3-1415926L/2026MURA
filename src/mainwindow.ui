@@ -415,7 +415,7 @@
      <string>Square Wall</string>
     </property>
    </widget>
-   <widget class="QWidget" name="widget" native="true">
+   <widget class="QWidget" name="save_image_widget" native="true">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -448,7 +448,7 @@
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="widget_2" native="true">
+   <widget class="QWidget" name="find_morphism_widget" native="true">
     <property name="geometry">
      <rect>
       <x>20</x>
